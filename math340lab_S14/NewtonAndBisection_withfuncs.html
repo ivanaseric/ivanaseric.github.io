@@ -1,0 +1,391 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Math 340 - Lab #3</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-02-22"><meta name="DC.source" content="NewtonAndBisection.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Math 340 - Lab #3</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Newton Method</a></li><li><a href="#3">Bisection Method</a></li><li><a href="#4">Order of convergence</a></li><li><a href="#5">Extra credit - keep working on this...</a></li></ul><h2>Called Functions</h2><ul><li><a href="#bisection">bisection </a></li><li><a href="#newton">newton </a></li></ul></div><h2>Newton Method<a name="1"></a></h2><p>Write a script that will find a root of <img src="images/NewtonAndBisection_eq37171.png" alt="$f(x)$"> using Newton's method. Your script should take a function, its derivative, initial guess, error tolerance and maximum nmber of iterations allowed  as input. Make sure your script does not run infinitely in case there are no roots, or the initial guess was too far from the roots. Also make sure to test that <img src="images/NewtonAndBisection_eq96350.png" alt="$f'(x)\neq 0$">. In either case your script should give an error message.</p><p>Test your function for <img src="images/NewtonAndBisection_eq55695.png" alt="$f(x)=4 + 8 x^2 - x^4$"> with initial guess <img src="images/NewtonAndBisection_eq87225.png" alt="$x_0=3$"></p><pre class="codeinput">clear <span class="string">all</span>
+clc
+<span class="comment">% define the function:</span>
+f = @(x) 4 + 8.*x.^2 - x.^4;
+
+<span class="comment">%define the derivative of the function</span>
+df = @(x) 16.*x - 4.*x.^3;
+
+<span class="comment">% error tolerance and maximum number of iterations</span>
+Error = 1E-6;  max_iter = 20;
+
+<span class="comment">% call function 'newton'</span>
+[app_root, iterates] = newton(f,df,3,Error,max_iter);
+fprintf(<span class="string">'The root of the function is %10.6f\n'</span>,app_root)
+app_error = abs(iterates(2:end) - iterates(1:end-1));   <span class="comment">% calculate approximated error = \|x_{n+1} - x_n\|</span>
+
+figure(1)
+plot(1:length(iterates)-1,app_error) <span class="comment">% Plot error vs numer of iterastions</span>
+xlabel(<span class="string">'n'</span>), ylabel(<span class="string">'E_n'</span>)
+title(<span class="string">'Newtor method error'</span>)
+</pre><pre class="codeoutput">The root of the function is   2.910693
+</pre><img vspace="5" hspace="5" src="images/NewtonAndBisection_01.png" alt=""> <h2>Bisection Method<a name="3"></a></h2><p>Do the same for bisection method. Remember you will need two initial guesses in this case.</p><pre class="codeinput">clear <span class="string">all</span>
+clc
+<span class="comment">% define the function:</span>
+f = @(x) 4 + 8.*x.^2 - x.^4;
+
+<span class="comment">% Starting interval:</span>
+a = 1;   b = 4;
+Error = 1E-6;
+
+<span class="comment">% call function 'bisection'</span>
+[app_root, iterates] = bisection(f,a,b,Error,50);
+fprintf(<span class="string">'The root of the function is %10.6f\n'</span>,app_root)
+
+<span class="comment">% upper bound for error in bisection method is the length of the interval:</span>
+app_error = (b-a)./2.^(1:length(iterates));
+
+<span class="comment">% plot error vs iteration number</span>
+plot((1:length(iterates)),app_error)
+xlabel(<span class="string">'n'</span>), ylabel(<span class="string">'E_n'</span>)
+title(<span class="string">'Bisection method error'</span>)
+</pre><pre class="codeoutput">The root of the function is   2.910693
+</pre><img vspace="5" hspace="5" src="images/NewtonAndBisection_02.png" alt=""> <h2>Order of convergence<a name="4"></a></h2><p>Plot the error vs number of iterations. Which method converges faster?</p><h2>Extra credit - keep working on this...<a name="5"></a></h2><p>Write a script that will implement the Newton's method for finding a root of function of two variables.</p><p><img src="images/NewtonAndBisection_eq90989.png" alt="$$ (y_1,y_2)=(f_1(x_1,x_2), f_2(x_1,x_2)) $$"></p><p>Think about how you can generalize your code for n variables.</p><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Math 340 - Lab #3
+%% Newton Method
+% Write a script that will find a root of $f(x)$ using Newton's method. Your 
+% script should take a function, its derivative, initial guess, error tolerance and 
+% maximum nmber of iterations allowed  as input. 
+% Make sure your script does not run infinitely in case there are no roots, 
+% or the initial guess was too far from the roots. Also make sure to test that 
+% $f'(x)\neq 0$. In either case your script should give an error message. 
+%%
+% Test your function for $f(x)=4 + 8 x^2 - x^4$ with initial guess $x_0=3$ 
+% 
+clear all
+clc
+% define the function:
+f = @(x) 4 + 8.*x.^2 - x.^4;
+
+%define the derivative of the function
+df = @(x) 16.*x - 4.*x.^3;   
+
+% error tolerance and maximum number of iterations
+Error = 1E-6;  max_iter = 20;
+
+% call function 'newton'
+[app_root, iterates] = newton(f,df,3,Error,max_iter);  
+fprintf('The root of the function is %10.6f\n',app_root)
+app_error = abs(iterates(2:end) - iterates(1:end-1));   % calculate approximated error = \|x_{n+1} - x_n\|
+
+figure(1) 
+plot(1:length(iterates)-1,app_error) % Plot error vs numer of iterastions
+xlabel('n'), ylabel('E_n')
+title('Newtor method error')
+
+%% Bisection Method
+% Do the same for bisection method. Remember you will need two initial
+% guesses in this case. 
+
+clear all
+clc 
+% define the function:
+f = @(x) 4 + 8.*x.^2 - x.^4;   
+
+% Starting interval:
+a = 1;   b = 4;   
+Error = 1E-6;
+
+% call function 'bisection' 
+[app_root, iterates] = bisection(f,a,b,Error,50);
+fprintf('The root of the function is %10.6f\n',app_root)
+
+% upper bound for error in bisection method is the length of the interval:
+app_error = (b-a)./2.^(1:length(iterates)); 
+
+% plot error vs iteration number
+plot((1:length(iterates)),app_error)
+xlabel('n'), ylabel('E_n')
+title('Bisection method error')
+%% Order of convergence
+% Plot the error vs number of iterations. Which method converges faster? 
+
+
+%% Extra credit - keep working on this... 
+% Write a script that will implement the Newton's method for finding a root of function of two variables.
+%
+% $$ (y_1,y_2)=(f_1(x_1,x_2), f_2(x_1,x_2)) $$
+%
+% Think about how you can generalize your code for n variables. 
+##### SOURCE END #####
+--></body></html>
+<a name="bisection"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>bisection</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-02-22"><meta name="DC.source" content="bisection.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% app_root is the approximation to the root found by the algorithm,</span>
+<span class="comment">% iterates is a vector containing the iterates.</span>
+<span class="keyword">function</span>  [app_root, iterates]  = bisection(f, a, b, error, iter_max)
+
+    <span class="comment">% initialize the number of iterations</span>
+    num_iter = 1;
+
+    <span class="comment">% test the interval length and number ot iterations for bisection:</span>
+    <span class="keyword">while</span> ((b-a) &gt;= error)
+
+        <span class="comment">% find mid point of the interval:</span>
+        c=(a+b)/2;
+
+        <span class="comment">% save iterates in a vector:</span>
+        iterates(num_iter) = c;
+
+        <span class="comment">% check the the signs of the endpoints of subintervals:</span>
+        <span class="keyword">if</span> (sign(f(b))*sign(f(c))&lt;=0)
+            a=c;
+        <span class="keyword">else</span>
+            b=c;
+        <span class="keyword">end</span>
+
+        <span class="comment">% count number of iterates:</span>
+        num_iter = num_iter + 1;
+
+        <span class="keyword">if</span> num_iter==iter_max
+            printf(<span class="string">'Maximum number of iterates (%d) reached, try bigger iter_max. app_root set to inf.'</span>, iter_max)
+            app_root = inf;
+            <span class="keyword">break</span>;
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+
+    <span class="comment">% root:</span>
+    app_root=c;
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+\n
+--></body></html>
+<a name="newton"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>newton</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-02-22"><meta name="DC.source" content="newton.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% app_root is the approximation to the root found by the algorithm,</span>
+<span class="comment">% iterates is a vector containing the iterates.</span>
+<span class="keyword">function</span> [app_root, iterates] = newton(f, df, x0, error, iter_max)
+    <span class="comment">% to evaluate the condition abs(xn_1 - xn) for the first time</span>
+    <span class="comment">% in the while loop these two lines need to be present prior</span>
+    <span class="comment">% to entering the code</span>
+    xn = x0;
+    xn_1 = xn - f(xn) / df(xn);
+
+    <span class="comment">% save the first iterates x0 and x1.</span>
+    iterates(1) = xn; iterates(2) = xn_1;
+
+    <span class="comment">% iter keeps count of the number of iterations (2 thus far)</span>
+    iter = 2;
+
+    <span class="comment">% we iterate as long as the error between consecutive iterates is</span>
+    <span class="comment">% greater than error</span>
+    <span class="keyword">while</span>(abs(xn_1 - xn) &gt;= error)
+        <span class="keyword">if</span>(iter &gt; iter_max)
+            fprintf(<span class="string">'Maximum number of iterates (%d) reached, try bigger iter_max. app_root set to inf.'</span>, iter_max);
+            app_root = inf;
+            <span class="keyword">break</span>;
+        <span class="keyword">end</span>
+        <span class="comment">% compute next iterate</span>
+        xn = xn_1;
+        xn_1 = xn - f(xn) / df(xn);
+        <span class="comment">% save it</span>
+        iterates(iter) = xn_1;
+        <span class="comment">% increment iter</span>
+        iter = iter + 1;
+    <span class="keyword">end</span>
+    app_root = xn_1;
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+\n
+--></body></html>

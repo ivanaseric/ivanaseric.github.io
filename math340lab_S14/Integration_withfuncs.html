@@ -1,0 +1,508 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Math 340 - Lab #9 - Numerical Integration</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-04-14"><meta name="DC.source" content="Integration.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Math 340 - Lab #9 - Numerical Integration</h1><!--introduction--><p>(Problems from homework: Section 5.1.:  2, 5b.)</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1"># 1</a></li><li><a href="#2"># 2</a></li><li><a href="#3">Example:</a></li><li><a href="#4">Table print out</a></li></ul><h2>Called Functions</h2><ul><li><a href="#midpoint">midpoint </a></li><li><a href="#simpson">simpson </a></li><li><a href="#trapezoidal">trapezoidal </a></li></ul></div><h2># 1<a name="1"></a></h2><p>Evaluate all the integrals (Section 5.1. #2) for n=2, 4, 8, &#8230;, 512 using the Trapezoidal Rule, Simpson&#8217;s Rule and Midpoint Rule. Comment on the results.</p><pre class="codeinput">clear <span class="string">all</span>; clc
+<span class="comment">% functions to be integrated</span>
+f = {@(x) exp(x).*cos(4.*x), @(x) x.^(5/2), @(x) exp(cos(x)), @(x) exp(cos(x)), @(x) x.^(1/2)};
+<span class="comment">% lower limit of integration</span>
+a = [0, 0, -pi, 0, 0];
+<span class="comment">% upper limit of integration</span>
+b = [pi, 1, pi, pi/4, 1];
+<span class="comment">% exact solutions:</span>
+int_exact = [(exp(pi)-1)/17, 2/7, 7.95492652101284, 1.93973485062365, 2/3];
+<span class="comment">% number of points:</span>
+n = 2.^([1:9]);
+
+<span class="keyword">for</span> i = 1:length(f)
+    fprintf(<span class="string">'  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule \n'</span>)
+    fprintf(<span class="string">'================================================================\n'</span>)
+    <span class="keyword">for</span> j = 1:length(n)
+        fprintf(<span class="string">'%3i  %15.6f    %17.6f    %15.6f  \n'</span>, n(j), trapezoidal(f{i},a(i),b(i),n(j)), <span class="keyword">...</span>
+        simpson(f{i},a(i),b(i),n(j)), midpoint(f{i},a(i),b(i),n(j)) )
+    <span class="keyword">end</span>
+    fprintf(<span class="string">'Exact solution = %f \n \n'</span>,int_exact(i))
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule 
+================================================================
+  2        26.516336            22.715077         -20.018235  
+  4         3.249050            -4.506711          -0.000000  
+  8         1.624525             1.083017           1.126920  
+ 16         1.375723             1.292788           1.264901  
+ 32         1.320312             1.301842           1.293384  
+ 64         1.306848             1.302360           1.300163  
+128         1.303506             1.302392           1.301838  
+256         1.302672             1.302394           1.302255  
+512         1.302463             1.302394           1.302359  
+Exact solution = 1.302394 
+ 
+  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule 
+================================================================
+  2         0.338388             0.284518           0.259195  
+  4         0.298791             0.285593           0.279158  
+  8         0.288975             0.285702           0.284082  
+ 16         0.286529             0.285713           0.285307  
+ 32         0.285918             0.285714           0.285613  
+ 64         0.285765             0.285714           0.285689  
+128         0.285727             0.285714           0.285708  
+256         0.285717             0.285714           0.285713  
+512         0.285715             0.285714           0.285714  
+Exact solution = 0.285714 
+ 
+  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule 
+================================================================
+  2         9.695462            12.156797           6.283185  
+  4         7.989323             7.420611           7.920532  
+  8         7.954928             7.943463           7.954925  
+ 16         7.954927             7.954926           7.954927  
+ 32         7.954927             7.954927           7.954927  
+ 64         7.954927             7.954927           7.954927  
+128         7.954927             7.954927           7.954927  
+256         7.954927             7.954927           7.954927  
+512         7.954927             7.954927           7.954927  
+Exact solution = 7.954927 
+ 
+  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule 
+================================================================
+  2         1.921179             1.940270           1.949060  
+  4         1.935120             1.939766           1.942045  
+  8         1.938583             1.939737           1.940311  
+ 16         1.939447             1.939735           1.939879  
+ 32         1.939663             1.939735           1.939771  
+ 64         1.939717             1.939735           1.939744  
+128         1.939730             1.939735           1.939737  
+256         1.939734             1.939735           1.939735  
+512         1.939735             1.939735           1.939735  
+Exact solution = 1.939735 
+ 
+  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule 
+================================================================
+  2         0.603553             0.638071           0.683013  
+  4         0.643283             0.656526           0.672977  
+  8         0.658130             0.663079           0.669032  
+ 16         0.663581             0.665398           0.667537  
+ 32         0.665559             0.666218           0.666983  
+ 64         0.666271             0.666508           0.666781  
+128         0.666526             0.666611           0.666707  
+256         0.666617             0.666647           0.666681  
+512         0.666649             0.666660           0.666672  
+Exact solution = 0.666667 
+ 
+</pre><h2># 2<a name="2"></a></h2><p>Use Trapezoidal rule and Simpson&#8217;s Rule ( with n=2, 4, 8, &#8230;, 512)  to compute the length of <img src="images/Integration_eq54491.png" alt="$f(x) = e^x$"> on <img src="images/Integration_eq21606.png" alt="$0<x<1$">.</p><pre class="codeinput">clear <span class="string">all</span>; clc
+<span class="comment">% integrand</span>
+f = @(x) sqrt(1 + exp(2.*x));
+<span class="comment">% end points for integration</span>
+a = 0;      b = 1;
+<span class="comment">% number of points:</span>
+n = 2.^([1:9]);
+
+fprintf(<span class="string">'  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule \n'</span>)
+fprintf(<span class="string">'================================================================\n'</span>)
+<span class="keyword">for</span> j = 1:length(n)
+    fprintf(<span class="string">'%3i  %15.6f    %17.6f    %15.6f  \n'</span>, n(j), trapezoidal(f,a,b,n(j)), <span class="keyword">...</span>
+    simpson(f,a,b,n(j)), midpoint(f,a,b,n(j)) )
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule 
+================================================================
+  2         2.041792             2.003957           1.984395  
+  4         2.013094             2.003527           1.998702  
+  8         2.005898             2.003499           2.002297  
+ 16         2.004097             2.003497           2.003197  
+ 32         2.003647             2.003497           2.003422  
+ 64         2.003535             2.003497           2.003478  
+128         2.003506             2.003497           2.003492  
+256         2.003499             2.003497           2.003496  
+512         2.003498             2.003497           2.003497  
+</pre><h2>Example:<a name="3"></a></h2><p>Trapeziodal rule for approximating</p><p><img src="images/Integration_eq70369.png" alt="$$ \int_0^1 x^2 \, dx $$"></p><pre class="codeinput">clear <span class="string">all</span>; clc
+f = @(x) x.^2;
+a = 0; b = 1; n = 32;
+Integral = trapezoidal(f,a,b,n);
+</pre><h2>Table print out<a name="4"></a></h2><p>Print your results in a table form for each of the integrals with different methods in columns and number of points in rows.</p><pre class="codeinput">fprintf(<span class="string">'N      Trapezoidal Rule        Simpson Rule        Midpoint Rule \n'</span>)
+fprintf(<span class="string">'================================================================\n'</span>)
+</pre><pre class="codeoutput">N      Trapezoidal Rule        Simpson Rule        Midpoint Rule 
+================================================================
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Math 340 - Lab #9 - Numerical Integration
+%
+% (Problems from homework: Section 5.1.:  2, 5b.)
+%% # 1 
+% Evaluate all the integrals (Section 5.1. #2) for n=2, 4, 8, …, 512 using the Trapezoidal 
+% Rule, Simpson’s Rule and Midpoint Rule. 
+% Comment on the results.
+clear all; clc
+% functions to be integrated
+f = {@(x) exp(x).*cos(4.*x), @(x) x.^(5/2), @(x) exp(cos(x)), @(x) exp(cos(x)), @(x) x.^(1/2)};
+% lower limit of integration
+a = [0, 0, -pi, 0, 0]; 
+% upper limit of integration
+b = [pi, 1, pi, pi/4, 1];
+% exact solutions:
+int_exact = [(exp(pi)-1)/17, 2/7, 7.95492652101284, 1.93973485062365, 2/3]; 
+% number of points:
+n = 2.^([1:9]);
+
+for i = 1:length(f)
+    fprintf('  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule \n')
+    fprintf('================================================================\n')
+    for j = 1:length(n)
+        fprintf('%3i  %15.6f    %17.6f    %15.6f  \n', n(j), trapezoidal(f{i},a(i),b(i),n(j)), ...
+        simpson(f{i},a(i),b(i),n(j)), midpoint(f{i},a(i),b(i),n(j)) )
+    end
+    fprintf('Exact solution = %f \n \n',int_exact(i))
+        
+end
+
+
+%% # 2
+% Use Trapezoidal rule and Simpson’s Rule ( with n=2, 4, 8, …, 512)  to
+% compute the length of $f(x) = e^x$ on $0<x<1$. 
+
+clear all; clc
+% integrand
+f = @(x) sqrt(1 + exp(2.*x));
+% end points for integration
+a = 0;      b = 1;
+% number of points:
+n = 2.^([1:9]);
+
+fprintf('  N        Trapezoidal Rule     Simpson Rule       Midpoint Rule \n')
+fprintf('================================================================\n')
+for j = 1:length(n)
+    fprintf('%3i  %15.6f    %17.6f    %15.6f  \n', n(j), trapezoidal(f,a,b,n(j)), ...
+    simpson(f,a,b,n(j)), midpoint(f,a,b,n(j)) )
+end
+
+%% Example: 
+% Trapeziodal rule for approximating 
+%
+% $$ \int_0^1 x^2 \, dx $$ 
+clear all; clc
+f = @(x) x.^2;
+a = 0; b = 1; n = 32; 
+Integral = trapezoidal(f,a,b,n);
+
+%% Table print out
+% Print your results in a table form for each of the integrals with different methods in columns
+% and number of points in rows. 
+
+fprintf('N      Trapezoidal Rule        Simpson Rule        Midpoint Rule \n')
+fprintf('================================================================\n')
+
+##### SOURCE END #####
+--></body></html>
+<a name="midpoint"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>midpoint</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-04-14"><meta name="DC.source" content="midpoint.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> int_value = midpoint(f,a,b,n)
+    h = (b-a)/n;
+    S = 0;
+    x = a + 0.5.*h;
+    <span class="keyword">for</span> i = 1:n
+        S = S + f(x);
+        x = x + h;
+    <span class="keyword">end</span>
+    int_value = h*S ;
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+\n
+--></body></html>
+<a name="simpson"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>simpson</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-04-14"><meta name="DC.source" content="simpson.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> int_value=simpson(f,a,b,n)
+h=(b-a)/n;
+S=0;
+x=a;
+<span class="keyword">for</span> i=1:n-1
+    x=x+h;
+    <span class="keyword">if</span> mod(i,2)==0
+        S=S+2*f(x);
+    <span class="keyword">else</span>
+        S=S+4*f(x);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+int_value=(h/3)*(f(a)+S+f(b));
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+\n
+--></body></html>
+<a name="trapezoidal"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>trapezoidal</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-04-14"><meta name="DC.source" content="trapezoidal.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> int_value = trapezoidal(f,a,b,n)
+    h = (b-a)/n;
+    S = 0;
+    x = a;
+    <span class="keyword">for</span> i = 1:n-1
+        x = x + h;
+        S = S + f(x);
+    <span class="keyword">end</span>
+    int_value = h*(0.5*f(a) + S + 0.5*f(b));
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+\n
+--></body></html>
