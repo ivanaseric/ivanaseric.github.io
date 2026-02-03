@@ -1,5 +1,5 @@
 body {
-    font-family: arial;
+    font-family: Inter;
     background-color:#FFFFFF;
 }
 .center-content {
@@ -27,7 +27,7 @@ header p {
     margin: 10px;
     background-color: #cc0000;
 }
-h3 {
+h2, h3 {
     padding: 10px 10px 0 20px;
     color: #cc0000;
 
@@ -36,3 +36,26 @@ h3 {
     margin: 10px 20px;
 
 }
+.inline-video{
+    float: right;
+    margin: 10px 20px;
+}
+.incline-dataviz-description {
+    padding: 10px 20px;
+}
+
+a:link {
+  text-decoration: none;
+
+}
+a:visited {
+  text-decoration: none;
+  color: darkblue;
+}
+a:hover {
+  text-decoration: underline;
+}
+a:active {
+  text-decoration: underline;
+}
+
