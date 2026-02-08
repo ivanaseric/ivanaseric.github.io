@@ -1,40 +1,18 @@
 body {
-    font-family: Inter;
     background-color:#FFFFFF;
+    height: 100%;
 }
-.center-content {
-    margin: 0 auto;
-    padding: 10px;
-    max-width: 1038px;
-    min-height: 100%;
-    background-color: white;
-    box-shadow: 0 0 20px #000
+.container-shadow {
+    box-shadow: 0 0 10px #000
 }
-header {
-    max-width: 1018px;
-}
-header h2 {
-    padding: 20px 10px 10px 10px;
-    margin: 0;
+.c-darkred-text {
     color: #cc0000;
-}
-header p {
-    margin: 0 10px;
 }
 .horizontal-line {
     min-height: 5px;
     max-width: 100%;
-    margin: 10px;
+    margin: 30px 0;
     background-color: #cc0000;
-}
-h2, h3 {
-    padding: 10px 10px 0 20px;
-    color: #cc0000;
-
-}
-.education p {
-    margin: 10px 20px;
-
 }
 .inline-video{
     float: right;
@@ -50,7 +28,6 @@ a:link {
 }
 a:visited {
   text-decoration: none;
-  color: darkblue;
 }
 a:hover {
   text-decoration: underline;
