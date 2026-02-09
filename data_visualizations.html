@@ -1,58 +1,145 @@
 <!DOCTYPE html>
-<link rel="shortcut icon" type="image/png" href="favicon.ico"/>
-<html style = "height: 100%;">
+<link rel="shortcut icon" type="image/png" href="favicon.ico" xmlns="http://www.w3.org/1999/html"/>
+<html lang="en">
 <head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Ivana Seric</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism-twilight.min.css"
+		  integrity="sha512-ch9ThmrGmkVrVm9tL/puGmSfzQps4yk9LDrWuswb65ZnPOIKuYZBen1yn3ez/fEbgeBqrU/IJ443OqgallfE9Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="stylesheet" href="style.css"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-<div>
-	<div class="center-content">
-		<header>
-			<div>
-				<h2>Ivana Seric</h2>
-				<p>
-					Sr. Product Scientist at  <a href="https://teamworks.com/">Teamworks</a><br>
-					This page is a WIP. See my
-					<a href="https://www.linkedin.com/in/ivana-seric-503b4731/" target="_blank">LinkedIn page</a>
-					 for more up-to-date information.
-				</p>
-			</div>
-			<div class="horizontal-line"></div>
-		</header>
-        <h2>Data Visualizations</h2>
-        <h3>Breakup of liquid metal filaments</h3>
-            <div class="inline-video">
-            <iframe width="560" height="315"
-                    src="https://www.youtube.com/embed/zKPJI_O1S5U?si=QRlgapCNQkKbpkLc"
-                    title="YouTube video player" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
-            </iframe>
+<div class="container container-shadow p-4 mt-3 mb-3">
+	<div class="row">
+		<h1 class="c-darkred-text">Ivana Seric</h1>
+		<h6>Sr. Product Scientist at  <a href="https://teamworks.com/">Teamworks</a></h6>
+		<h6>See my
+			<a href="https://www.linkedin.com/in/ivana-seric-503b4731/" target="_blank">LinkedIn page</a>
+			 for more up-to-date information.
+		</h6>
+	</div>
 
-            </div>
-            <p class="incline-dataviz-description">
-                A numerical simulations of metal filaments on a solid substrate.
-                Liquefied by a laser, the filaments breakup governed by the
-                <a href="https://en.wikipedia.org/wiki/Plateau%E2%80%93Rayleigh_instability">Rayleigh-Plateau instability</a>.
-                The
-                <a href="https://en.wikipedia.org/wiki/Marangoni_effect">Marangoni effect</a>,
-                resulting from a different surface tension of the two metals from which the
-                filament is built, can lead to the inversion of the breakup process, producing droplets at the
-                locations where according to the Rayleigh-Plateau theory dry spots would be expected.
-                <br><br>
-                These simulations are created with
-                <a href="https://sourceforge.net/projects/gfs/">Gerris</a> fluid dynamics solver and
-                <a href="https://www.povray.org/">The Persistence of Vision</a> ray tracing software as part of
-                <a href="https://gfm.aps.org/">Galery of Fluid Motion</a> competition at the Physics of Fluids conference.
-                <br><br>
-                This work was done in collaborations with Kyle Mahady, Shahriar Afkhami & Lou Kondic
-                at New Jersey Institute of Technology.<br>
-            </p>
-    </div>
+	<div class="horizontal-line"></div>
+
+	<div class="row p-3">
+		<h2 class="c-darkred-text pt-3">Practicing D3.js visualizations</h2>
+        <h4>Power curve with colors by zone</h4>
+		<p>I first saw this type of chart on <a>intervals.icu</a>, and I like how it makes it easy to see the
+            power for each section without needing to read off the number on hte y-axis. So I thought I'll recreate it
+            from scratch while I was first learning D3.js! Since this was over 3 years ago, I did this without AI. </p>
+		<p>
+			We'll focus on the 2nd chart from the top. It's a 30-second moving average of power data. The colors of the
+			area under the curve are based off power zones, which can be found on the 2nd tab of their activity page.
+		</p>
+
+		<div class="col-md-8">
+			<img src="images/intervals_activity_charts.png" class="img-fluid" alt="An example of intervals.icu activity charts."/>
+		</div>
+		<div class="col-md-4">
+			<img src="images/intervals_power_zones.png" class="img-fluid" alt="An example of intervals.icu power zones."/>
+		</div>
+	</div>
+
+	<div class="row p-3">
+		<h5>The Data</h5>
+		<p>In order to reproduce this power chart, we need two sets of data:</p>
+		<ul>
+			<li>Power data time series</li>
+			<li>Power zone boundaries</li>
+		</ul>
+		<p>
+			I can download my activity data from Garmin in a .fit format. I did all the data cleaning and processing
+			in Python. In order to extract the power data from the .fit file, I used
+			<a href="https://github.com/dtcooper/python-fitparse" target="_blank">python-fitparse</a> package.
+		</p>
+		<pre><code class="language-python">
+			import os
+			import re
+			from numpy import nan
+			import pandas as pd
+			import fitparse
+		</code></pre>
+		<p>
+			Make sure you saved your <code>.fit</code> file in the same working directory. Here's how you would read it:
+		</p>
+		<pre><code class="language-python">
+			fitfile = fitparse.FitFile("19231612591_ACTIVITY.fit")
+		</code></pre>
+		<p>
+			There's a bit of "manual" work required to extract the time series data:
+		</p>
+
+		<pre><code class="language-python">
+			# Create an empty list where we will append a dictionary for each time stamp in the data
+			data_parse = []
+
+			# Loop through data entries. File contains a "message" for each data entry it "receives" from the Garmin device.
+			for record in fitfile.get_messages('record'):
+				# Create an empty dictionary for each time stamp
+				data_row = {}
+				for data in record:
+					if not re.search('unknown_', data.name):
+						data_row[data.name] = data.value
+				data_parse.append(data_row)
+
+		</code></pre>
+		<p>
+			Create 2 new columns which will be our <code>x</code> and <code>y</code> axes in the plot. Then export the
+			data as <code>.csv</code> which we'll read in with JavaScript.
+		</p>
+		<pre><code class="language-python">
+			raw_df["elapsed_time"] = raw_df.timestamp - raw_df.timestamp.iloc[0]
+			raw_df["smooth_power"] = raw_df["power"].rolling(30, center=True, min_periods=1).mean()
+			power_df = raw_df[["elapsed_time", "power", "smooth_power"]].copy().fillna(0)
+			power_df.to_csv("cycling_activity.csv", index=False)
+		</code></pre>
+	</div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+		integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"
+		integrity="sha512-HiD3V4nv8fcjtouznjT9TqDNDm1EXngV331YGbfVGeKUoH+OLkRTCMzA34ecjlgSQZpdHZupdSrqHY+Hz3l6uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"
+		integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>
+
+
+
+
+
+<!--        <h2>Data Visualizations</h2>-->
+<!--        <h3>Breakup of liquid metal filaments</h3>-->
+<!--            <div class="inline-video">-->
+<!--            <iframe width="560" height="315"-->
+<!--                    src="https://www.youtube.com/embed/zKPJI_O1S5U?si=QRlgapCNQkKbpkLc"-->
+<!--                    title="YouTube video player" frameborder="0"-->
+<!--                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"-->
+<!--                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>-->
+<!--            </iframe>-->
+
+<!--            </div>-->
+<!--            <p class="incline-dataviz-description">-->
+<!--                A numerical simulations of metal filaments on a solid substrate.-->
+<!--                Liquefied by a laser, the filaments breakup governed by the-->
+<!--                <a href="https://en.wikipedia.org/wiki/Plateau%E2%80%93Rayleigh_instability">Rayleigh-Plateau instability</a>.-->
+<!--                The-->
+<!--                <a href="https://en.wikipedia.org/wiki/Marangoni_effect">Marangoni effect</a>,-->
+<!--                resulting from a different surface tension of the two metals from which the-->
+<!--                filament is built, can lead to the inversion of the breakup process, producing droplets at the-->
+<!--                locations where according to the Rayleigh-Plateau theory dry spots would be expected.-->
+<!--                <br><br>-->
+<!--                These simulations are created with-->
+<!--                <a href="https://sourceforge.net/projects/gfs/">Gerris</a> fluid dynamics solver and-->
+<!--                <a href="https://www.povray.org/">The Persistence of Vision</a> ray tracing software as part of-->
+<!--                <a href="https://gfm.aps.org/">Galery of Fluid Motion</a> competition at the Physics of Fluids conference.-->
+<!--                <br><br>-->
+<!--                This work was done in collaborations with Kyle Mahady, Shahriar Afkhami & Lou Kondic-->
+<!--                at New Jersey Institute of Technology.<br>-->
+<!--            </p>-->
+<!--    </div>-->
