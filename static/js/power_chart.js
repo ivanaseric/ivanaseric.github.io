@@ -1,13 +1,15 @@
+// import d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import {get_data} from "./csv_data.js";
+
 async function powerChart(df) {
 
     const yValue = d => d.power
-    const yValueSmooth = d => d.powerSmooth
-//    const xValue = d => d.distance/1609.344
+    const yValueSmooth = d => d.smooth_power
     const xValue = d => d.elapsed_time/60
 
     let dimensions = {
-        width: Math.min(window.innerWidth * 0.9, 1200),
-        height: Math.min(window.innerWidth * 0.5, 400),
+        width: Math.min(window.innerWidth * 0.9, 1000),
+        height: Math.min(window.innerWidth * 0.5, 200),
         margin: {
             top: 15,
             right: 15,
@@ -28,25 +30,27 @@ async function powerChart(df) {
         .style("transform",
                `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`)
 
-    const yScale = d3.scaleLinear()
-        .domain(d3.extent(df, yValueSmooth))
+    const yScale = d3.scaleLog()
+        .clamp(true)
+        .domain([60, 600])
         .range([dimensions.boundedHeight, 0])
-        .nice()
+        .base(3)
+        // .nice()
 
     const xScale = d3.scaleLinear()
         .domain(d3.extent(df, xValue))
-        .range([0, dimensions.boundedWidth])
+        .range([dimensions.boundedWidth, 0])
 //        .nice()
 
 
-    const thresholdWatts=224
-    const alpha = 1
+    const thresholdWatts=244
+    const alpha = 0.3
     const zoneBoundaries = [0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts, 1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]]
-    const zoneColors = ["#a9bcff", "#9affff", "#18ffb1", "#ffffad", "#ffd493", "#ff9f8c", "#ffbdda"]
+    const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"]
 
     const zones = []
     const zonesGradient = []
-    for (i=0; i<zoneBoundaries.length-1; i++){
+    for (let i=0; i<zoneBoundaries.length-1; i++){
 //        check that data boundary even contains that zone
         if (zoneBoundaries[i] <= yScale.domain()[1]){
             zones.push({
@@ -56,12 +60,12 @@ async function powerChart(df) {
                 "fill": zoneColors[i]
             });
             zonesGradient.push({
-                'offset': `${100*zoneBoundaries[i+1]/yScale.domain()[1]}%`,
+                'offset': `${100-100*(yScale(zoneBoundaries[i+1])/yScale(yScale.domain()[0]))}%`,
                 'color': zoneColors[i]
             });
-        };
-    };
-    console.log(zonesGradient)
+        }
+    }
+    console.log(yScale(256))
 
     const zonesR = bounds.append('g')
         .attr('mask', 'url(#mask-power)')
@@ -108,38 +112,43 @@ async function powerChart(df) {
         .x(d => xScale(xValue(d)))
         .y(d => yScale(yValueSmooth(d)))
 
-//    const line = bounds.append("path")
-//        .attr("d", lineGenerator(df))
-//        .attr("fill", "none")
-//        .attr("stroke", "#c8cbcf")
-//        .attr("stroke-opacity", 0.5)
-//        .attr("stroke-width", 1)
+   // const line = bounds.append("path")
+   //     .attr("d", lineGenerator(df))
+   //     .attr("fill", "none")
+   //     .attr("stroke", "#c8cbcf")
+   //     .attr("stroke-opacity", 0.5)
+   //     .attr("stroke-width", 1)
 
 // Set the gradient
-//    bounds.append("linearGradient")
-//      .attr("id", "line-gradient")
-//      .attr("gradientUnits", "userSpaceOnUse")
-//      .attr("x1", 0)
-//      .attr("y1", yScale(0))
-//      .attr("x2", 0)
-//      .attr("y2", yScale(650))
-//      .selectAll("stop")
-//        .data(zonesGradient)
-//      .enter().append("stop")
-//        .attr("offset", function(d) { return d.offset; })
-//        .attr("stop-color", function(d) { return d.color; });
+    const line_gradient =
+   bounds
+       .append("linearGradient")
+     .attr("id", "line-gradient")
+     .attr("gradientUnits", "userSpaceOnUse")
+     .attr("x1", 0)
+     .attr("y1", yScale(yScale.domain()[0]))
+     .attr("x2", 0)
+     .attr("y2", yScale(yScale.domain()[1]))
+     .selectAll("stop")
+       .data(zonesGradient)
+     .enter()
+       .append("stop")
+       .attr("offset", function(d) { return d.offset; })
+       .attr("stop-color", function(d) { return d.color; });
+
+    console.log(line_gradient)
 
     const lineSmooth = bounds.append("path")
         .datum(df)
         .attr("d", lineGeneratorSmooth(df))
         .attr("fill", "none")
-        .attr("stroke", "darkgray" )
-//        .attr("stroke", "url(#line-gradient)" )
+        // .attr("stroke",  )
+       .attr("stroke", "url(#line-gradient)" )
         .attr("stroke-width", 2)
 
 
     const yAxisGenerator = d3.axisLeft()
-        .scale(yScale)
+        .scale(yScale).ticks(4)
     const yAxis = bounds.append("g")
         .call(yAxisGenerator)
 
@@ -152,5 +161,6 @@ async function powerChart(df) {
             dimensions.boundedHeight
         }px)`)
 }
-
+const data_js = get_data();
 powerChart(data_js)
+
