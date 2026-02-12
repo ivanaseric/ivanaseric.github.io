@@ -56,47 +56,47 @@
 			in Python. In order to extract the power data from the .fit file, I used
 			<a href="https://github.com/dtcooper/python-fitparse" target="_blank">python-fitparse</a> package.
 		</p>
-		<pre><code class="language-python">
-			import os
-			import re
-			from numpy import nan
-			import pandas as pd
-			import fitparse
-		</code></pre>
+<pre><code class="language-python">
+	import os
+	import re
+	from numpy import nan
+	import pandas as pd
+	import fitparse
+</code></pre>
 		<p>
 			Make sure you saved your <code>.fit</code> file in the same working directory. Here's how you would read it:
 		</p>
-		<pre><code class="language-python">
-			fitfile = fitparse.FitFile("19231612591_ACTIVITY.fit")
-		</code></pre>
+<pre><code class="language-python">
+	fitfile = fitparse.FitFile("19231612591_ACTIVITY.fit")
+</code></pre>
 		<p>
 			There's a bit of "manual" work required to extract the time series data:
 		</p>
 
-		<pre><code class="language-python">
-			# Create an empty list where we will append a dictionary for each time stamp in the data
-			data_parse = []
+<pre><code class="language-python">
+	# Create an empty list where we will append a dictionary for each time stamp in the data
+	data_parse = []
 
-			# Loop through data entries. File contains a "message" for each data entry it "receives" from the Garmin device.
-			for record in fitfile.get_messages('record'):
-				# Create an empty dictionary for each time stamp
-				data_row = {}
-				for data in record:
-					if not re.search('unknown_', data.name):
-						data_row[data.name] = data.value
-				data_parse.append(data_row)
+	# Loop through data entries. File contains a "message" for each data entry it "receives" from the Garmin device.
+	for record in fitfile.get_messages('record'):
+		# Create an empty dictionary for each time stamp
+		data_row = {}
+		for data in record:
+			if not re.search('unknown_', data.name):
+				data_row[data.name] = data.value
+		data_parse.append(data_row)
 
-		</code></pre>
+</code></pre>
 		<p>
 			Create 2 new columns which will be our <code>x</code> and <code>y</code> axes in the plot. Then export the
 			data as <code>.csv</code> which we'll read in with JavaScript.
 		</p>
-		<pre><code class="language-python">
-			raw_df["elapsed_time"] = raw_df.timestamp - raw_df.timestamp.iloc[0]
-			raw_df["smooth_power"] = raw_df["power"].rolling(30, center=True, min_periods=1).mean()
-			power_df = raw_df[["elapsed_time", "power", "smooth_power"]].copy().fillna(0)
-			power_df.to_csv("cycling_activity.csv", index=False)
-		</code></pre>
+<pre><code class="language-python">
+	raw_df["elapsed_time"] = raw_df.timestamp - raw_df.timestamp.iloc[0]
+	raw_df["smooth_power"] = raw_df["power"].rolling(30, center=True, min_periods=1).mean()
+	power_df = raw_df[["elapsed_time", "power", "smooth_power"]].copy().fillna(0)
+	power_df.to_csv("cycling_activity.csv", index=False)
+</code></pre>
 	</div>
 </div>
 
