@@ -1,7 +1,7 @@
 // import d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import {get_data} from "./csv_data.js";
 
-async function powerChart(container_id, { width, height, dataset }) {
+async function powerChart(container_id, {width, dataset} ) {
 
     const exp = 1;
     const yValueSmooth = d => d.smooth_power**exp;
@@ -9,19 +9,22 @@ async function powerChart(container_id, { width, height, dataset }) {
 
     let dimensions = {
         width: width,
-        height: height,
+        height: 150,
         margin: {
-            top: 15,
-            right: 15,
+            top: 5,
+            right: 0,
             bottom: 40,
-            left: 60,
+            left: 40,
         },
     }
 
     dimensions.boundedWidth = dimensions.width - dimensions.margin.left - dimensions.margin.right;
     dimensions.boundedHeight = dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
 
-    const svg = d3.select(container_id)
+    const container = d3.select(container_id)
+    container.selectAll("svg").remove()
+
+    const svg = container
         .append("svg")
         .attr("width", dimensions.width)
         .attr("height", dimensions.height)
@@ -102,20 +105,19 @@ async function powerChart(container_id, { width, height, dataset }) {
     }
 
     // Set the gradient
-    const line_gradient = bounds
-       .append("linearGradient")
-         .attr("id", "line-gradient")
-         .attr("gradientUnits", "userSpaceOnUse")
-         .attr("x1", 0)
-         .attr("y1", yScale(yScale.domain()[0]))
-         .attr("x2", 0)
-         .attr("y2", yScale(yScale.domain()[1]))
-         .selectAll("stop")
-           .data(zonesGradient)
-             .enter()
-               .append("stop")
-               .attr("offset", function(d) { return d.offset; })
-               .attr("stop-color", function(d) { return d.color; });
+    bounds.append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0)
+        .attr("y1", yScale(yScale.domain()[0]))
+        .attr("x2", 0)
+        .attr("y2", yScale(yScale.domain()[1]))
+        .selectAll("stop")
+        .data(zonesGradient)
+        .enter()
+            .append("stop")
+            .attr("offset", function(d) { return d.offset; })
+            .attr("stop-color", function(d) { return d.color; });
 
     const areaOutline = d3.area()
         .x(d => xScale(xValue(d)))
@@ -131,14 +133,14 @@ async function powerChart(container_id, { width, height, dataset }) {
         .x(d => xScale(xValue(d)))
         .y(d => yScale(yValueSmooth(d)))
 
-    const lineSmooth = bounds.append("path")
-        .datum(dataset)
+    bounds.append("path")
+        .data(dataset)
         .attr("d", lineGeneratorSmooth(dataset))
         .attr("fill", "none")
         .attr("stroke", "url(#line-gradient)" )
         .attr("stroke-width", 1.5)
 
-
+    // Add axes
     const axisOpacity = 0.5;
     const yAxisGenerator = d3.axisLeft()
         .scale(yScale)
@@ -157,64 +159,59 @@ async function powerChart(container_id, { width, height, dataset }) {
         }px)`).attr("opacity", axisOpacity);
 
 
-
-
-
-    // Create the tooltip container.
-    // const tooltip = bounds.append("g")
-    //     .attr("class", "y-tooltip")
-    //     .style("transform",
-    //            `translate(${dimensions.margin.left}px, ${dimensions.height/2}px)`)
+    //  Add interactivity
     const y_tooltip = svg.append("text")
         .attr("id", "y-tooltip")
-        .attr("x", dimensions.margin.left/2) // Set the x position
-        .attr("y", dimensions.height/2 - dimensions.margin.top) // Set the y position
-        .attr("font-size", "10px") // Optional: set font size
-        .attr("fill", "teal") // Optional: set text color
+        .attr("x", dimensions.margin.left/2)
+        .attr("y", dimensions.height/2 - dimensions.margin.top)
+        .attr("font-size", "10px")
+        .attr("fill", "teal")
         .attr("dominant-baseline", "middle")
-        .attr("text-anchor", "right") // For horizontal centering
-            .text(""); // Set the text content
+        .attr("text-anchor", "right")
+        .text("");
 
-
-    const verticalLine = svg.append("line")
+    const verticalLine = bounds.append("line")
         .attr("class", "mouse-line")
         .style("stroke", "black")
         .style("stroke-width", "1px")
-        .style("opacity", 0); // Hidden by default
+        .style("opacity", 0); // Hidden at the start
 
-    const horizontalLine = svg.append("line")
+    const horizontalLine = bounds.append("line")
         .attr("class", "mouse-line")
         .style("stroke", "black")
         .style("stroke-width", "1px")
-        .style("opacity", 0); // Hidden by default
+        .style("opacity", 0); // Hidden at the start
+
+    const bisect = d3.bisector(d => xValue(d)).center;
 
     svg.on("mousemove", function(event) {
-        const [xMouse, yMouse] = d3.pointer(event); // Get mouse X position
+        const [xMouse, yMouse] = d3.pointer(event); // Get mouse position
         if (
             xMouse >= dimensions.margin.left && xMouse <= dimensions.width - dimensions.margin.right
             && yMouse <= dimensions.height - dimensions.margin.bottom && yMouse >= dimensions.margin.top
         ) {
-            const i = bisect(dataset, xScale.invert(xMouse - dimensions.margin.left));
-            const yMousePower = yScale(dataset[i].smooth_power)
+            const xMouseTime = xScale.invert(xMouse - dimensions.margin.left);
+            const i = bisect(dataset, xMouseTime);
+
             verticalLine
-                .attr("x1", xMouse)
-                .attr("y1", dimensions.margin.top)
-                .attr("x2", xMouse)
-                .attr("y2", dimensions.height - dimensions.margin.bottom)
-                .style("opacity", axisOpacity); // Show line
+                .transition()
+                .duration(60)
+                .attr("x1", xScale(xMouseTime))
+                .attr("y1", dimensions.height - dimensions.margin.bottom)
+                .attr("x2", xScale(xMouseTime))
+                .attr("y2", dimensions.margin.top)
+                .style("opacity", axisOpacity);
+
             horizontalLine
-                .attr("y1", yMousePower)
-                .attr("x1", dimensions.margin.left)
-                .attr("y2", yMousePower)
-                .attr("x2", dimensions.width - dimensions.margin.right)
-                .style("opacity", axisOpacity); // Show line
+                .transition()
+                .duration(60)
+                .attr("y1", yScale(dataset[i].smooth_power))
+                .attr("x1", 0)
+                .attr("y2", yScale(dataset[i].smooth_power))
+                .attr("x2", dimensions.width)
+                .style("opacity", axisOpacity);
 
             y_tooltip.text(dataset[i].smooth_power.toFixed(0))
-            // console.log(dataset[i].smooth_power)
-            // console.log( xScale.invert(xMouse - dimensions.margin.left))
-
-            tooltip
-                .style("display", "inline")
 
         } else {
             verticalLine.style("opacity", 0)
@@ -222,47 +219,19 @@ async function powerChart(container_id, { width, height, dataset }) {
         }
     });
 
-     // Add the event listeners that show or hide the tooltip.
-      const bisect = d3.bisector(d => xValue(d)).center;
-      function pointermoved(event) {
-        const i = bisect(dataset, xScale.invert(d3.pointer(event)[0]));
-        // console.log(xScale(dataset[i].elapsed_time))
-        tooltip.style("display", "block");
-        // tooltip.attr("transform", `translate(${xScale(dataset[i].elapsed_time)},${yScale(dataset[i].smooth_power)})`);
 
-        const path = tooltip.selectAll("path")
-          .data([,])
-          .join("path")
-            .attr("fill", "white")
-            .attr("stroke", "black");
-
-        const text = tooltip.selectAll("text")
-          .data([,])
-          .join("text")
-          .call(text => text
-            .selectAll("tspan")
-            .data([dataset[i].elapsed_time, dataset[i].smooth_power])
-            .join("tspan")
-              .attr("x", 100)
-              .attr("y", 100)
-              .attr("font-weight", "bold")
-              .text(d => d));
-
-        // size(text, path);
-      }
-
-      function pointerleft() {
-        tooltip.style("display", "none");
-      }
-
-      // Wraps the text with a callout path of the correct size, as measured in the page.
-      // function size(text, path) {
-      //   const {x, y, width: w, height: h} = text.node().getBBox();
-      //   console.log(text.node().getBBox())
-      //   text.attr("transform", `translate(${-w / 2},${15 - y})`);
-      //   path.attr("d", `M${-w / 2 - 10},5H-5l5,-5l5,5H${w / 2 + 10}v${h + 20}h-${w + 20}z`);
-      // }
 }
-const data_js = get_data();
-powerChart("#wrapper", {width: 1000, height: 150, dataset: data_js})
+
+async function chartResize(){
+
+    const data_js = get_data();
+    var chartDiv = document.getElementById("wrapper");
+    var width = chartDiv.clientWidth;
+    console.log(width)
+    await powerChart("#wrapper",  {"width": width, dataset: data_js})
+}
+
+await chartResize();
+
+window.addEventListener('resize', chartResize );
 
