@@ -11,7 +11,8 @@
 		  integrity="sha512-ch9ThmrGmkVrVm9tL/puGmSfzQps4yk9LDrWuswb65ZnPOIKuYZBen1yn3ez/fEbgeBqrU/IJ443OqgallfE9Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="stylesheet" href="style.css"/>
 </head>
-<body>
+<body style="visibility: hidden;">
+<noscript><style>body { visibility: visible; }</style></noscript>
 <div class="container container-shadow p-4 mt-3 mb-3">
 	<div class="row">
 		<h1 class="c-darkred-text">Ivana Seric</h1>
@@ -36,13 +37,13 @@
 		</p>
 
 		<div class="col-md-8">
-			<img src="images/intervals_activity_charts.png" class="img-fluid" alt="An example of intervals.icu activity charts."/>
+			<img src="images/power_30_sec_exp_1.png" class="img-fluid" alt="An example of intervals.icu activity charts."/>
 		</div>
 		<div class="col-md-4">
 			<img src="images/intervals_power_zones.png" class="img-fluid" alt="An example of intervals.icu power zones."/>
 		</div>
 	</div>
-		<div id="wrapper"></div>
+		<div class="col-md-8" id="wrapper"></div>
 
 	<div class="row p-3">
 		<h5>The Data</h5>
@@ -109,6 +110,19 @@
 		integrity="sha512-HiD3V4nv8fcjtouznjT9TqDNDm1EXngV331YGbfVGeKUoH+OLkRTCMzA34ecjlgSQZpdHZupdSrqHY+Hz3l6uQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"
 		integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+	// Helper function
+let domReady = (cb) => {
+  document.readyState === 'interactive' || document.readyState === 'complete'
+    ? cb()
+    : document.addEventListener('DOMContentLoaded', cb);
+};
+
+domReady(() => {
+  // Display body when DOM is loaded
+  document.body.style.visibility = 'visible';
+});
+</script>
 </body>
 </html>
 
