@@ -26,8 +26,8 @@
 	<div class="horizontal-line"></div>
 
 	<div class="row p-3">
-		<h2 class="c-darkred-text pt-3">Practicing D3.js visualizations</h2>
-        <h4>Adding discrete color to an area chart</h4>
+		<h2 class="c-darkred-text pt-3">D3.js Data Visualizations</h2>
+        <h4>Adding discrete color bands to an area chart</h4>
 		<p>I first saw this type of chart on <a href="https://intervals.icu">intervals.icu</a>. It is used to make it easy to quickly spot power
 			outputs in different "power zones". Power zones are a good way to determine what was the training effect
 			for the workout: aerobic, threshold, anaerobic, or neuromuscular.
@@ -41,7 +41,9 @@
 		<p>
 			The image below shows a screenshot from <a href="https://intervals.icu">intervals.icu</a>: the top panel is the raw power chart, and the bottom
 			panel is a 30-second moving average of power data with the colors of the
-			area under the curve are based off power zones. This is the chart we will recreate here. Let's get started!
+			area under the curve are based off power zones. The latter is the chart we will recreate here.
+		</p><p>
+			Let's get started!
 		</p>
 
 		<div class="col-md-12">
@@ -78,10 +80,12 @@ import fitparse
 			There's a bit of "manual" work required to extract the time series data:
 		</p>
 
-<pre><code class="language-python"># Create an empty list where we will append a dictionary for each time stamp in the data
+<pre><code class="language-python"># Create an empty list where we will append a dictionary
+#	for each time stamp in the data
 data_parse = []
 
-# Loop through data entries. File contains a "message" for each data entry it "receives" from the Garmin device.
+# Loop through data entries. Fit file contains a "message" for each data entry it
+#	"receives" from the Garmin device.
 for record in fitfile.get_messages('record'):
 	# Create an empty dictionary for each time stamp
 	data_row = {}
@@ -101,10 +105,17 @@ power_df.to_csv("cycling_activity.csv", index=False)
 </code></pre>
 	</div>
 	<p>
-		The data extraction part is over, and now the fun part begins! Let's get out of Python and bring this data to
-		our JavaScript code. Since I'm just building a static webpage here and I don't care about this data being public,
-		I'll just save <code>csv</code> values in a JS function as a string. Then I'll use <code>csvParse()</code> function from D3.js to turn
-		it into a JS object.
+		The data extraction part is over, and now the fun part begins!
+	</p>
+
+
+	<h5>Importing the data in JavaScript</h5>
+	<p>
+		Let's get out of Python and bring this data to
+		our JavaScript code. Since I'm just building a static webpage here (no web server to fetch the data from the
+		backend) and I don't care about this data being public,
+		I'll just save <code>csv</code> values in a JS function as a string. Then I'll use <code>csvParse()</code>
+		function from D3.js to turn it into a JS object.
 	</p>
 <pre><code class="language-javascript">export function get_data () {
 	const csv_string = (
@@ -116,12 +127,113 @@ power_df.to_csv("cycling_activity.csv", index=False)
 		1613,0.0,96.125`);
 
     return d3.csvParse(csv_string, d3.autoType);
-}
-</code></pre>
+}</code></pre>
 	<p>
-		Note that the `...` is the middle of the data above is just to shorten the function here. :)
+		Note that the <code>...</code> is the middle of the data above is just to shorten the function here. :)
+	</p>
+	<p>
+		Now, we'll switch to a new JS file, I called it <code>power_chart.js</code>. First we'll import our
+		<code>get_data</code> function.
+	</p>
+	<pre><code class="language-javascript">import {get_data} from "./csv_data.js";</code></pre>
+
+
+	<h5>Defining the boundaries of the drawing canvas</h5>
+	<p>
+		In this tutorial, I'll show you a complete code for the chart, but I'll breeze through parts that are not
+		specific to creating the area plot with colors by zone.
+	</p>
+	<p>
+		I start all my D3 charts with setting up the dimensions and margins for our drawing area.
+		A side note, I've learned D3 from watching
+		<a href="https://currankelleher.com/">Curran Kelleher</a>'s tutorials, and I still use some of the conventions
+		and variable names from his tutorials.
+		I highly recommend his D3.js YouTube videos and blog posts for learning D3!
+	</p>
+	<pre><code class="language-javascript">async function power_chart(container_id, {width, dataset} ) {
+
+    let dimensions = {
+        width: width,
+        height: 150,
+        margin: {
+            top: 5,
+            right: 0,
+            bottom: 40,
+            left: 40,
+        },
+    }
+
+    dimensions.boundedWidth = dimensions.width - dimensions.margin.left - dimensions.margin.right;
+    dimensions.boundedHeight = dimensions.height - dimensions.margin.top - dimensions.margin.bottom;</code></pre>
+
+
+	<h5>Initialize the drawing surface</h5>
+	<p>
+		Next, let's initiate our <code>svg</code> element and define our chart boundaries. The reason I
+		<code>.remove()</code> an all <code>svg</code> elements from the container is because the width of this chart
+		will be responsive to the changes in the window size. There are a few ways to implement the size responsiveness,
+		and this is the easiest way. More on this towards the end.
+	</p>
+	<pre>
+	<code class="language-javascript">const container = d3.select(container_id)
+	container.selectAll("svg").remove()
+	const svg = container.append("svg")
+		.attr("width", dimensions.width)
+		.attr("height", dimensions.height)
+
+	const bounds = svg.append("g")
+		.style("transform",
+			   `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`)</code></pre>
+
+
+	<h5>Define scales</h5>
+	<p>
+		Next, let's define what we will plot: the <code>x</code>-axis will represent the elapsed time in this cycling
+		activity, and the <code>y</code>-axis will represent smooth 30-second moving average of the power output.
+	</p>
+	<pre>
+	<code class="language-javascript">const yValueSmooth = d => d.smooth_power**exp;
+	const xValue = d => d.elapsed_time/60;
+
+	const yScale = d3.scaleLinear()
+		.domain([0, d3.extent(dataset, yValueSmooth)[1]])
+		.range([dimensions.boundedHeight, 0])
+
+	const xScale = d3.scaleLinear()
+		.domain(d3.extent(dataset, xValue))
+		.range([0, dimensions.boundedWidth])</code></pre>
+
+
+	<h5>Define the power zone boundaries</h5>
+	<p>
+		First, we need to know where we want the power zone boundaries. They can be defined in different ways, but my
+		settings on <a href="https://intervals.icu">intervals.icu</a> are as follows:
 	</p>
 
+<pre><code class="language-javascript">
+</code></pre>
+
+	<p>
+		In order to get the color for the area under the curve and the curve itself, we'll use
+		<a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient">
+			<code>linearGradient</code></a> construct.
+		Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html">simple example</a>
+		of how gradient works with two colors.
+		We're going to extend this to more colors. Our chart won't have color "gradient" strictly speaking, but this
+		allows us to define colors that can be applied to the area and the curve.
+	</p>
+	<p>
+		The <code>linearGradient</code> allows us to define gradient stop points (<code>"offset"</code>)
+		(and start), and we can add as many
+		colors as we want. The way we'll get the solid color "bands" for each power zone, is by using the same color
+		twice, and by making the "gradients" where the color changes have zero width.
+		We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e. the percent of the
+		boundedHeight we want each color to occupy.
+	</p>
+	<p>
+		The data that we will pass to the <code>linearGradient</code> will be a list of dictionaries with the "offset"
+		and "color" fields.
+	</p>
 	<div class="col-md-12" id="wrapper"></div>
 </div>
 

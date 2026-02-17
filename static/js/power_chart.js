@@ -1,11 +1,6 @@
-// import d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import {get_data} from "./csv_data.js";
 
-async function powerChart(container_id, {width, dataset} ) {
-
-    const exp = 1;
-    const yValueSmooth = d => d.smooth_power**exp;
-    const xValue = d => d.elapsed_time/60;
+async function power_chart(container_id, {width, dataset} ) {
 
     let dimensions = {
         width: width,
@@ -24,8 +19,7 @@ async function powerChart(container_id, {width, dataset} ) {
     const container = d3.select(container_id)
     container.selectAll("svg").remove()
 
-    const svg = container
-        .append("svg")
+    const svg = container.append("svg")
         .attr("width", dimensions.width)
         .attr("height", dimensions.height)
 
@@ -33,8 +27,12 @@ async function powerChart(container_id, {width, dataset} ) {
         .style("transform",
                `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`)
 
+    const exp = 1;
+    const yValue = d => d.smooth_power**exp;
+    const xValue = d => d.elapsed_time/60;
+
     const yScale = d3.scaleLinear()
-        .domain([0, d3.extent(dataset, yValueSmooth)[1]])
+        .domain([0, d3.extent(dataset, yValue)[1]])
         .range([dimensions.boundedHeight, 0])
         // .nice()
 
@@ -44,62 +42,23 @@ async function powerChart(container_id, {width, dataset} ) {
 
 
     const thresholdWatts=244**exp
-    const alpha = 0.3
-    const zoneBoundaries = [0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts, 1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]]
-    const zoneBoundaries2 = [
-        0,
-        0.55*thresholdWatts,
-        0.55*thresholdWatts,
-        0.75*thresholdWatts,
-        0.75*thresholdWatts,
-        0.90*thresholdWatts,
-        0.90*thresholdWatts,
-        1.05*thresholdWatts,
-        1.05*thresholdWatts,
-        1.20*thresholdWatts,
-        1.20*thresholdWatts,
-        1.50*thresholdWatts,
-        1.50*thresholdWatts,
-        1.70*thresholdWatts,
-        yScale.domain()[1]
-    ]
-
+    const zoneBoundaries = [
+        0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts, 1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]]
     const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"]
-    const zoneColors2 = [
-        "#3db39f",
-        "#3db39f",
-        "#3db33f",
-        "#3db33f",
-        "#fcd549",
-        "#fcd549",
-        "#fc9c49",
-        "#fc9c49",
-        "#e34074",
-        "#e34074",
-        "#8963d8",
-        "#8963d8",
-        "#797388",
-        "#797388"]
 
-    const zones = []
     const zonesGradient = []
     for (let i=0; i<zoneBoundaries.length-1; i++){
-//        check that data boundary even contains that zone
+//        check that data actually contains the zone
         if (zoneBoundaries[i] <= yScale.domain()[1]){
-            zones.push({
-                "y": yScale(zoneBoundaries[i+1]),
-                "height": yScale(zoneBoundaries[i])-yScale(zoneBoundaries[i+1]),
-                "width": dimensions.boundedWidth,
-                "fill": zoneColors[i]
-            });
-        }
-    }
-        for (let i=0; i<zoneBoundaries2.length; i++){
-//        check that data boundary even contains that zone
-        if (zoneBoundaries2[i] <= yScale.domain()[1]){
+            // Add the "lower" boundary for the zone
             zonesGradient.push({
-                'offset': `${100-100*(yScale(zoneBoundaries2[i])/yScale(yScale.domain()[0]))}%`,
-                'color': zoneColors2[i]
+                'offset': `${100-100*(yScale(zoneBoundaries[i])/yScale(yScale.domain()[0]))}%`,
+                'color': zoneColors[i]
+            });
+            // Add the "upper" boundary for the zone
+            zonesGradient.push({
+                'offset': `${100-100*(yScale(zoneBoundaries[i+1])/yScale(yScale.domain()[0]))}%`,
+                'color': zoneColors[i]
             });
         }
     }
@@ -119,10 +78,11 @@ async function powerChart(container_id, {width, dataset} ) {
             .attr("offset", function(d) { return d.offset; })
             .attr("stop-color", function(d) { return d.color; });
 
+    const alpha = 0.3
     const areaOutline = d3.area()
         .x(d => xScale(xValue(d)))
         .y0(d => yScale(yScale.domain()[0]))
-        .y1(d => yScale(yValueSmooth(d)));
+        .y1(d => yScale(yValue(d)));
 
     bounds.append("path")
         .attr("d", areaOutline(dataset))
@@ -131,7 +91,7 @@ async function powerChart(container_id, {width, dataset} ) {
 
     const lineGeneratorSmooth = d3.line()
         .x(d => xScale(xValue(d)))
-        .y(d => yScale(yValueSmooth(d)))
+        .y(d => yScale(yValue(d)))
 
     bounds.append("path")
         .data(dataset)
@@ -228,7 +188,7 @@ async function chartResize(){
     var chartDiv = document.getElementById("wrapper");
     var width = chartDiv.clientWidth;
     console.log(width)
-    await powerChart("#wrapper",  {"width": width, dataset: data_js})
+    await power_chart("#wrapper",  {"width": width, dataset: data_js})
 }
 
 await chartResize();
