@@ -26,8 +26,9 @@
 	<div class="horizontal-line"></div>
 
 	<div class="row p-3">
-		<h2 class="c-darkred-text pt-3">D3.js Data Visualizations</h2>
-        <h4>Adding discrete color bands to an area chart</h4>
+		<h2 class="c-darkred-text">D3.js Data Visualizations Tips</h2>
+		<br>
+        <h3 class="mt-3">Adding discrete color bands to an area chart</h3>
 		<p>I first saw this type of chart on <a href="https://intervals.icu">intervals.icu</a>. It is used to make it easy to quickly spot power
 			outputs in different "power zones". Power zones are a good way to determine what was the training effect
 			for the workout: aerobic, threshold, anaerobic, or neuromuscular.
@@ -35,15 +36,8 @@
             power for each section without needing to read off the number on the y-axis.
 		</p>
 		<p>
-			This is a tutorial on how to create a chart with area and line color depending on the y-value. I worked on
+			More generally, this is a tutorial on how to create a chart with area and line color depending on the y-value. I worked on
 			this plot while learning D3.js for the first time, about 3 years ago. I hope this will be helpful for others!
-		</p>
-		<p>
-			The image below shows a screenshot from <a href="https://intervals.icu">intervals.icu</a>: the top panel is the raw power chart, and the bottom
-			panel is a 30-second moving average of power data with the colors of the
-			area under the curve are based off power zones. The latter is the chart we will recreate here.
-		</p><p>
-			Let's get started!
 		</p>
 
 		<div class="col-md-12">
@@ -51,10 +45,17 @@
 				 class="img-fluid"
 				 alt="An example of intervals.icu power charts charts."/>
 		</div>
+		<p>
+			The image above shows a screenshot from <a href="https://intervals.icu">intervals.icu</a>: the top panel is the raw power chart, and the bottom
+			panel is a 30-second moving average of power data where the colors of the
+			area under the curve are based off power zones. The latter is the chart we will recreate here.
+		</p><p>
+			Let's get started!
+		</p>
 	</div>
 
 	<div class="row p-3">
-		<h5>The Data</h5>
+		<h4>The Data</h4>
 		<p>In order to reproduce this power chart, we need two sets of data:</p>
 		<ul>
 			<li>Power data time series</li>
@@ -103,13 +104,14 @@ raw_df["smooth_power"] = raw_df["power"].rolling(30, center=True, min_periods=1)
 power_df = raw_df[["elapsed_time", "power", "smooth_power"]].copy().fillna(0)
 power_df.to_csv("cycling_activity.csv", index=False)
 </code></pre>
-	</div>
 	<p>
 		The data extraction part is over, and now the fun part begins!
 	</p>
 
+	</div>
 
-	<h5>Importing the data in JavaScript</h5>
+	<div class="row p-3">
+	<h4>Importing the data in JavaScript</h4>
 	<p>
 		Let's get out of Python and bring this data to
 		our JavaScript code. Since I'm just building a static webpage here (no web server to fetch the data from the
@@ -137,8 +139,9 @@ power_df.to_csv("cycling_activity.csv", index=False)
 	</p>
 	<pre><code class="language-javascript">import {get_data} from "./csv_data.js";</code></pre>
 
-
-	<h5>Defining the boundaries of the drawing canvas</h5>
+	</div>
+	<div class="row p-3">
+	<h4>Defining the boundaries of the drawing canvas</h4>
 	<p>
 		In this tutorial, I'll show you a complete code for the chart, but I'll breeze through parts that are not
 		specific to creating the area plot with colors by zone.
@@ -166,8 +169,9 @@ power_df.to_csv("cycling_activity.csv", index=False)
     dimensions.boundedWidth = dimensions.width - dimensions.margin.left - dimensions.margin.right;
     dimensions.boundedHeight = dimensions.height - dimensions.margin.top - dimensions.margin.bottom;</code></pre>
 
-
-	<h5>Initialize the drawing surface</h5>
+	</div>
+	<div class="row p-3">
+	<h4>Initialize the drawing surface</h4>
 	<p>
 		Next, let's initiate our <code>svg</code> element and define our chart boundaries. The reason I
 		<code>.remove()</code> an all <code>svg</code> elements from the container is because the width of this chart
@@ -185,8 +189,9 @@ power_df.to_csv("cycling_activity.csv", index=False)
 		.style("transform",
 			   `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`)</code></pre>
 
-
-	<h5>Define scales</h5>
+	</div>
+	<div class="row p-3">
+	<h4>Define scales</h4>
 	<p>
 		Next, let's define what we will plot: the <code>x</code>-axis will represent the elapsed time in this cycling
 		activity, and the <code>y</code>-axis will represent smooth 30-second moving average of the power output.
@@ -203,16 +208,19 @@ power_df.to_csv("cycling_activity.csv", index=False)
 		.domain(d3.extent(dataset, xValue))
 		.range([0, dimensions.boundedWidth])</code></pre>
 
-
-	<h5>Define the power zone boundaries</h5>
+	</div>
+	<div class="row p-3">
+	<h4>Define the "gradient"</h4>
 	<p>
 		First, we need to know where we want the power zone boundaries. They can be defined in different ways, but my
 		settings on <a href="https://intervals.icu">intervals.icu</a> are as follows:
 	</p>
-
-<pre><code class="language-javascript">
-</code></pre>
-
+	<pre>
+	<code class="language-javascript">const thresholdWatts = 244;
+    const zoneBoundaries = [
+        0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts,
+		1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]];
+    const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"];</code></pre>
 	<p>
 		In order to get the color for the area under the curve and the curve itself, we'll use
 		<a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient">
@@ -223,16 +231,171 @@ power_df.to_csv("cycling_activity.csv", index=False)
 		allows us to define colors that can be applied to the area and the curve.
 	</p>
 	<p>
-		The <code>linearGradient</code> allows us to define gradient stop points (<code>"offset"</code>)
-		(and start), and we can add as many
-		colors as we want. The way we'll get the solid color "bands" for each power zone, is by using the same color
-		twice, and by making the "gradients" where the color changes have zero width.
+		The <code>linearGradient</code> allows us to define color zones through "stop" points (<code>"offset"</code>)
+		(and start), and we can add as many colors as we want (or as many as we can fit).
+		The way we'll get the solid color "bands" for each power zone, is by using the same color
+		twice, and by making the "gradients" where the color changes from one to the next have zero width.
 		We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e. the percent of the
 		boundedHeight we want each color to occupy.
 	</p>
 	<p>
 		The data that we will pass to the <code>linearGradient</code> will be a list of dictionaries with the "offset"
 		and "color" fields.
+	</p>
+	<pre>
+	<code class="language-javascript">const zonesGradient = []
+	for (let i=0; i < zoneBoundaries.length-1; i++){
+//        check that data actually contains the zone
+        if (zoneBoundaries[i] <= yScale.domain()[1]){
+            // Add the "lower" boundary for the zone
+            zonesGradient.push({
+                'offset': `${
+                    100-100*( yScale(zoneBoundaries[i]) / yScale.range()[0] )
+                }%`,
+                'color': zoneColors[i]
+            });
+            // Add the "upper" boundary for the zone
+            zonesGradient.push({
+                'offset': `${
+                    100-100*( yScale(zoneBoundaries[i+1]) / yScale.range()[0] )
+                }%`,
+                'color': zoneColors[i]
+            });
+        }
+    }</code>
+	</pre>
+	<p>
+		Now, we add the <code>linearGradient</code> to our <code>bounds</code>.
+	</p>
+	<pre>
+	<code class="language-javascript"> bounds.append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0)
+        .attr("y1", yScale(yScale.domain()[0]))
+        .attr("x2", 0)
+        .attr("y2", yScale(yScale.domain()[1]))
+        .selectAll("stop")
+        .data(zonesGradient)
+        .enter()
+            .append("stop")
+            .attr("offset", function(d) { return d.offset; })
+            .attr("stop-color", function(d) { return d.color; });</code>
+	</pre>
+	<p>Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the gradient is
+	passed in as "fill" attribute to the area and "stroke" attribute to the line elements via a <code>url</code> to
+	the gradient <code>id</code> we gave it above.</p>
+	<pre>
+	<code class="language-javascript">const alpha = 0.3
+    const areaOutline = d3.area()
+        .x(d => xScale(xValue(d)))
+        .y0(d => yScale(yScale.domain()[0]))
+        .y1(d => yScale(yValue(d)));
+
+    bounds.append("path")
+        .attr("d", areaOutline(dataset))
+        .attr("fill", "url(#line-gradient)")
+        .attr("opacity", alpha);
+
+    const lineGeneratorSmooth = d3.line()
+        .x(d => xScale(xValue(d)))
+        .y(d => yScale(yValue(d)))
+
+    bounds.append("path")
+        .data(dataset)
+        .attr("d", lineGeneratorSmooth(dataset))
+        .attr("fill", "none")
+        .attr("stroke", "url(#line-gradient)" )
+        .attr("stroke-width", 1.5)</code>
+	</pre>
+	<p>
+		To finalize the plot, we just need to add the axis:
+	</p>
+	<pre>
+	<code class="language-javascript">const axisOpacity = 0.5;
+    const yAxisGenerator = d3.axisLeft()
+        .scale(yScale)
+        .tickValues(yScale.domain());
+
+    bounds.append("g")
+        .call(yAxisGenerator)
+        .attr("opacity", axisOpacity);
+
+    const xAxisGenerator = d3.axisBottom()
+        .scale(xScale);
+    bounds.append("g")
+        .call(xAxisGenerator)
+        .style("transform", `translateY(${
+            dimensions.boundedHeight
+        }px)`).attr("opacity", axisOpacity);</code>
+	</pre>
+	<p>
+		... and some interactivity for mouse hover. Here, I'm just replicating close to how the hover works on
+		<a href="https://intervals.icu">intervals.icu</a>.
+	</p>
+	<pre>
+	<code class="language-javascript">const y_tooltip = svg.append("text")
+        .attr("id", "y-tooltip")
+        .attr("x", dimensions.margin.left/2)
+        .attr("y", dimensions.height/2 - dimensions.margin.top)
+        .attr("font-size", "10px")
+        .attr("fill", "teal")
+        .attr("dominant-baseline", "middle")
+        .attr("text-anchor", "right")
+        .text("");
+
+    const verticalLine = bounds.append("line")
+        .attr("class", "mouse-line")
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
+        .style("opacity", 0); // Hidden at the start
+
+    const horizontalLine = bounds.append("line")
+        .attr("class", "mouse-line")
+        .style("stroke", "black")
+        .style("stroke-width", "1px")
+        .style("opacity", 0); // Hidden at the start
+
+    const bisect = d3.bisector(d => xValue(d)).center;
+
+    svg.on("mousemove", function(event) {
+        const [xMouse, yMouse] = d3.pointer(event); // Get mouse position
+        if (
+            xMouse >= dimensions.margin.left && xMouse <= dimensions.width - dimensions.margin.right
+            && yMouse <= dimensions.height - dimensions.margin.bottom && yMouse >= dimensions.margin.top
+        ) {
+            const xMouseTime = xScale.invert(xMouse - dimensions.margin.left);
+            const i = bisect(dataset, xMouseTime);
+
+            verticalLine
+                .transition()
+                .duration(60)
+                .attr("x1", xScale(xMouseTime))
+                .attr("y1", dimensions.height - dimensions.margin.bottom)
+                .attr("x2", xScale(xMouseTime))
+                .attr("y2", dimensions.margin.top)
+                .style("opacity", axisOpacity);
+
+            horizontalLine
+                .transition()
+                .duration(60)
+                .attr("y1", yScale(dataset[i].smooth_power))
+                .attr("x1", 0)
+                .attr("y2", yScale(dataset[i].smooth_power))
+                .attr("x2", dimensions.width)
+                .style("opacity", axisOpacity);
+
+            y_tooltip.text(dataset[i].smooth_power.toFixed(0))
+
+        } else {
+            verticalLine.style("opacity", 0)
+            horizontalLine.style("opacity", 0)
+        }
+    });
+} // closing braces for the power_chart function</code>
+	</pre>
+	<p>
+		Here's the final plot:
 	</p>
 	<div class="col-md-12" id="wrapper"></div>
 </div>

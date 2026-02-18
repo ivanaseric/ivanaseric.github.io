@@ -41,23 +41,31 @@ async function power_chart(container_id, {width, dataset} ) {
         .range([0, dimensions.boundedWidth])
 
 
-    const thresholdWatts=244**exp
+    const thresholdWatts = 244**exp;
     const zoneBoundaries = [
-        0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts, 1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]]
-    const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"]
+        0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts,
+        1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts,
+        yScale.domain()[1]];
+    const zoneColors = [
+        "#009e80", "#52c704", "#ffcb0e", "#ff7f0e",
+        "#dd0447", "#6633cc", "#504861"];
 
     const zonesGradient = []
-    for (let i=0; i<zoneBoundaries.length-1; i++){
+    for (let i=0; i < zoneBoundaries.length-1; i++){
 //        check that data actually contains the zone
         if (zoneBoundaries[i] <= yScale.domain()[1]){
             // Add the "lower" boundary for the zone
             zonesGradient.push({
-                'offset': `${100-100*(yScale(zoneBoundaries[i])/yScale(yScale.domain()[0]))}%`,
+                'offset': `${
+                    100-100*( yScale(zoneBoundaries[i]) / yScale.range()[0] )
+                }%`,
                 'color': zoneColors[i]
             });
             // Add the "upper" boundary for the zone
             zonesGradient.push({
-                'offset': `${100-100*(yScale(zoneBoundaries[i+1])/yScale(yScale.domain()[0]))}%`,
+                'offset': `${
+                    100-100*( yScale(zoneBoundaries[i+1]) / yScale.range()[0] )
+                }%`,
                 'color': zoneColors[i]
             });
         }
@@ -178,8 +186,6 @@ async function power_chart(container_id, {width, dataset} ) {
             horizontalLine.style("opacity", 0)
         }
     });
-
-
 }
 
 async function chartResize(){
