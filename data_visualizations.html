@@ -8,7 +8,8 @@
 	<script src="https://d3js.org/d3.v7.min.js"></script>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
 		integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-ghcolors.min.css" integrity="sha512-8IZwRS36BrHutOtXP+S9ZLe/5MubhjJ26t1Kf9RYRt2kQi7brb8mLAKuJDX3qPJZ2U4Wg1cLPigCQVAxscTjtA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-ghcolors.min.css"
+		  integrity="sha512-8IZwRS36BrHutOtXP+S9ZLe/5MubhjJ26t1Kf9RYRt2kQi7brb8mLAKuJDX3qPJZ2U4Wg1cLPigCQVAxscTjtA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 	<link rel="stylesheet" href="style.css"/>
 </head>
 <body style="visibility: hidden;">
@@ -362,191 +363,326 @@ raw_df.drop("timestamp", axis=1, inplace=True)
 				  </div>
 				</div>
 				<p>
-					I owe you a couple of explanations. First, the reason for <code>.remove()</code> an all
-					<code>svg</code> element selections from the container is because, as I mentioned,
-					the width of this chart will be responsive to the changes in the window size and we will re-draw
+					I owe you a couple of explanations. First, the reason for <code>.remove()</code> on the
+					<code>svg</code> element selection from the container is because, as I mentioned earlier,
+					the width of this chart will be responsive to the changes in the window size, and we will re-draw
 					the chart any time the window size changes. If we didn't remove the old charts, we would end up with
 					multiple charts on top of each other. Second, the <code>"transform"</code> will move the
 					<code>bounds</code> from the top left corner to create our top and left margins.
 				</p>
-
-
 				<p>
 					Defining the size of the canvas is not the only extra work we need to do compared to your favorite
 					<code>R</code> or <code>Python</code> plotting library. Our data is in units of seconds and Watts,
-					but we need to know how many pixels on the screen in the horizontal direction corresponds to one
-					second.
+					but we need to know how many pixels on the screen correspond to these units in both directions.
 					In other words, we need to rescale our data into pixels on the screen!
-					We'll define what scales we want to use. This may seem a bit <em>"much"</em>, but it gives us more
+					The following code first defines <em>accessor</em> functions for <code>x</code> and <code>y</code>
+					dimensions in our plot, and then defines scales based on the range of values in the data and the
+					sizes of the canvas we defined above.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-js-scales" aria-expanded="true"
+							  aria-controls="code-js-scales">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-js-scales" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const yValue = d => d.smooth_power;
+	const xValue = d => d.elapsed_time/60;
+
+	const yScale = d3.scaleLinear()
+		.domain([0, d3.extent(dataset, yValue)[1]])
+		.range([dimensions.boundedHeight, 0])
+
+	const xScale = d3.scaleLinear()
+		.domain(d3.extent(dataset, xValue))
+		.range([0, dimensions.boundedWidth])</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				<p>
+					A gentle reminder that in computer graphics, the <code>y</code>-direction is positive pointing down and
+					negative pointing up.
+				</p>
+				<p>
+					This may seem a bit <em>"much"</em>, but it gives us more
 					control. And with great control comes... a lot of lines of code to just create a line chart.
 				</p>
 			</section>
-			<p>
-				Next, let's define what we will plot: the <code>x</code>-axis will represent the elapsed time in this cycling
-				activity, and the <code>y</code>-axis will represent smooth 30-second moving average of the power output.
-			</p>
-			<pre>
-<code class="language-javascript">const yValueSmooth = d => d.smooth_power**exp;
-const xValue = d => d.elapsed_time/60;
+			<section title='Defining the "gradient"'>
+				<h4 class="mt-5">Define the "gradient"</h4>
+				<p>
+					In order to create the area colors for the power zone bands, we'll use a
+					<a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient">
+					<code>linearGradient</code></a> SVG element. This <code>linearGradient</code> can then be applied
+					to other SVG elements.
+					Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html">simple example</a>
+					of how gradient works with two colors. We're going to extend this to more colors. Our chart won't
+					have color "gradient" strictly speaking, but this allows us to define colors that can be applied to
+					the area and the curve.
+				</p>
+				<p>
+					Before we start, we'll need a bit more information: we need to know where are the power zone
+					boundaries. They can be defined in different ways, but my settings on
+					<a href="https://intervals.icu">intervals.icu</a> below, along with the hex-values for the colors we
+					will use.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-js-ftp" aria-expanded="true"
+							  aria-controls="code-js-ftp">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-js-ftp" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const thresholdWatts = 244;
+	const zoneBoundaries = [
+		0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts,
+		1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]];
+	const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"];</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				<p>
+					So how do we use this "gradient" to have solid bands of color and no <em>actual</em> gradient?
+	<!--				We'll make the parts with gradient where one color changes to the next, have zero height! -->
+					The <code>linearGradient</code> allows us to define color zones through "stop" (and implicitly start)
+					points, in <code>"offset"</code> property. We can add as many colors as we want (or as many as we can fit).
+					The way we'll get the solid color "bands" for each power zone, is by using the same color
+					twice, and by making the "gradients" where the color changes from one to the next have zero height.
+					We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e. the percent of the
+					boundedHeight we want each color to occupy.
+				</p>
+				<p>
+					The data that we will pass to the <code>linearGradient</code> will be a list of dictionaries with the "offset"
+					and "color" fields.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-js-zones" aria-expanded="true"
+							  aria-controls="code-js-zones">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-js-zones" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const zonesGradient = []
+	for (let i=0; i < zoneBoundaries.length-1; i++){
+//        check that data actually contains the zone
+		if (zoneBoundaries[i] <= yScale.domain()[1]){
+			// Add the "lower" boundary for the zone
+			zonesGradient.push({
+				'offset': `${
+					100-100*( yScale(zoneBoundaries[i]) / yScale.range()[0] )
+				}%`,
+				'color': zoneColors[i]
+			});
+			// Add the "upper" boundary for the zone
+			zonesGradient.push({
+				'offset': `${
+					100-100*( yScale(zoneBoundaries[i+1]) / yScale.range()[0] )
+				}%`,
+				'color': zoneColors[i]
+			});
+		}
+	}</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				<p>
+					If this is confusing, take the time to calculate (on paper) what each color band should be. It's a
+					very simple math. Don't just take my word for it!
+				</p>
+				<p>
+					Next, we add the <code>linearGradient</code> to our <code>bounds</code>.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-js-add_gradient" aria-expanded="true"
+							  aria-controls="code-js-add_gradient">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-js-add_gradient" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	bounds.append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0)
+        .attr("y1", yScale(yScale.domain()[0]))
+        .attr("x2", 0)
+        .attr("y2", yScale(yScale.domain()[1]))
+        .selectAll("stop")
+        .data(zonesGradient)
+        .enter()
+        	.append("stop")
+			.attr("offset", (d) => d.offset)
+			.attr("stop-color", (d) => d.color);</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			</section>
 
-const yScale = d3.scaleLinear()
-	.domain([0, d3.extent(dataset, yValueSmooth)[1]])
-	.range([dimensions.boundedHeight, 0])
+			<section title="Area and line charts">
+				<h4 class="mt-5">Area and line charts</h4>
+				<p>
+					Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the
+					gradient is passed in as "fill" attribute to the area and "stroke" attribute to the line elements
+					via a <code>url</code> to the gradient <code>id</code> we gave it above.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-js-area_line" aria-expanded="true"
+							  aria-controls="code-js-area_line">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-js-area_line" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	// Area chart
+	const alpha = 0.3
+	const areaOutline = d3.area()
+		.x(d => xScale(xValue(d)))
+		.y0(d => yScale(yScale.domain()[0]))
+		.y1(d => yScale(yValue(d)));
 
-const xScale = d3.scaleLinear()
-	.domain(d3.extent(dataset, xValue))
-	.range([0, dimensions.boundedWidth])</code></pre>
-			<div class="row p-3">
-			<h4>Define the "gradient"</h4>
-			<p>
-				First, we need to know where we want the power zone boundaries. They can be defined in different ways, but my
-				settings on <a href="https://intervals.icu">intervals.icu</a> are as follows:
-			</p>
-			<pre>
-			<code class="language-javascript">const thresholdWatts = 244;
-			const zoneBoundaries = [
-				0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts,
-				1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]];
-			const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"];</code></pre>
-			<p>
-				In order to get the color for the area under the curve and the curve itself, we'll use
-				<a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient">
-					<code>linearGradient</code></a> construct.
-				Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html">simple example</a>
-				of how gradient works with two colors.
-				We're going to extend this to more colors. Our chart won't have color "gradient" strictly speaking, but this
-				allows us to define colors that can be applied to the area and the curve.
-			</p>
-			<p>
-				The <code>linearGradient</code> allows us to define color zones through "stop" points (<code>"offset"</code>)
-				(and start), and we can add as many colors as we want (or as many as we can fit).
-				The way we'll get the solid color "bands" for each power zone, is by using the same color
-				twice, and by making the "gradients" where the color changes from one to the next have zero width.
-				We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e. the percent of the
-				boundedHeight we want each color to occupy.
-			</p>
-			<p>
-				The data that we will pass to the <code>linearGradient</code> will be a list of dictionaries with the "offset"
-				and "color" fields.
-			</p>
-			<pre>
-			<code class="language-javascript">const zonesGradient = []
-			for (let i=0; i < zoneBoundaries.length-1; i++){
-		//        check that data actually contains the zone
-				if (zoneBoundaries[i] <= yScale.domain()[1]){
-					// Add the "lower" boundary for the zone
-					zonesGradient.push({
-						'offset': `${
-							100-100*( yScale(zoneBoundaries[i]) / yScale.range()[0] )
-						}%`,
-						'color': zoneColors[i]
-					});
-					// Add the "upper" boundary for the zone
-					zonesGradient.push({
-						'offset': `${
-							100-100*( yScale(zoneBoundaries[i+1]) / yScale.range()[0] )
-						}%`,
-						'color': zoneColors[i]
-					});
-				}
-			}</code>
-			</pre>
-			<p>
-				Now, we add the <code>linearGradient</code> to our <code>bounds</code>.
-			</p>
-			<pre>
-			<code class="language-javascript"> bounds.append("linearGradient")
-				.attr("id", "line-gradient")
-				.attr("gradientUnits", "userSpaceOnUse")
-				.attr("x1", 0)
-				.attr("y1", yScale(yScale.domain()[0]))
-				.attr("x2", 0)
-				.attr("y2", yScale(yScale.domain()[1]))
-				.selectAll("stop")
-				.data(zonesGradient)
-				.enter()
-					.append("stop")
-					.attr("offset", function(d) { return d.offset; })
-					.attr("stop-color", function(d) { return d.color; });</code>
-			</pre>
-			<p>Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the gradient is
-			passed in as "fill" attribute to the area and "stroke" attribute to the line elements via a <code>url</code> to
-			the gradient <code>id</code> we gave it above.</p>
-			<pre>
-			<code class="language-javascript">const alpha = 0.3
-			const areaOutline = d3.area()
-				.x(d => xScale(xValue(d)))
-				.y0(d => yScale(yScale.domain()[0]))
-				.y1(d => yScale(yValue(d)));
+	bounds.append("path")
+		.attr("d", areaOutline(dataset))
+		.attr("fill", "url(#line-gradient)")
+		.attr("opacity", alpha);
 
-			bounds.append("path")
-				.attr("d", areaOutline(dataset))
-				.attr("fill", "url(#line-gradient)")
-				.attr("opacity", alpha);
+	// Line chart
+	const lineGeneratorSmooth = d3.line()
+		.x(d => xScale(xValue(d)))
+		.y(d => yScale(yValue(d)));
 
-			const lineGeneratorSmooth = d3.line()
-				.x(d => xScale(xValue(d)))
-				.y(d => yScale(yValue(d)))
+	bounds.append("path")
+		.data(dataset)
+		.attr("d", lineGeneratorSmooth(dataset))
+		.attr("fill", "none")
+		.attr("stroke", "url(#line-gradient)" )
+		.attr("stroke-width", 1.5);</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			</section>
+			<section title="Axis">
+				<h4 class="mt-5">Axis</h4>
+				<p>
+					To finalize the plot, we just need to add the axis. I'll try to replicate my plot inspiration here
+					as closely as possible.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-js-axis" aria-expanded="true"
+							  aria-controls="code-js-axis">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-js-axis" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const axisOpacity = 0.5;
+	const yAxisGenerator = d3.axisLeft()
+		.scale(yScale)
+		.tickValues(yScale.domain());
 
-			bounds.append("path")
-				.data(dataset)
-				.attr("d", lineGeneratorSmooth(dataset))
-				.attr("fill", "none")
-				.attr("stroke", "url(#line-gradient)" )
-				.attr("stroke-width", 1.5)</code>
-			</pre>
-			<p>
-				To finalize the plot, we just need to add the axis:
-			</p>
+	bounds.append("g")
+		.call(yAxisGenerator)
+		.attr("opacity", axisOpacity);
+
+	const xAxisGenerator = d3.axisBottom()
+		.scale(xScale);
+	bounds.append("g")
+		.call(xAxisGenerator)
+		.style("transform", `translateY(${
+			dimensions.boundedHeight
+		}px)`).attr("opacity", axisOpacity);</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			</section>
+			<section title="The Magic of D3.js">
+				<h4 class="mt-5">The Magic of D3.js</h4>
+				<p>
+					What is the point of doing all this work with D3.js if we don't add some interactivity?! We'll add
+					mouse hover that shows exact <code>x</code> and <code>y</code> values. Let's add lines that
+					guide the eye from the point being hovered to the values on the axis. First, we define the lines,
+					but keep them hidden until the mouse hovers over.
+				</p>
+
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-hover_lines" aria-expanded="true"
+							  aria-controls="code-hover_lines">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-hover_lines" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const verticalLine = bounds.append("line")
+		.attr("y1", dimensions.height - dimensions.margin.bottom)
+		.attr("y2", dimensions.margin.top)
+		.attr("class", "mouse-line")
+		.style("stroke", "black")
+		.style("stroke-width", "1px")
+		.style("opacity", 0); // Hidden at the start
+
+	const horizontalLine = bounds.append("line")
+		.attr("x1", 0)
+		.attr("x2", dimensions.width)
+		.attr("class", "mouse-line")
+		.style("stroke", "black")
+		.style("stroke-width", "1px")
+		.style("opacity", 0); // Hidden at the start</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				<p>
+					Once the mouse hovers over the chart, we can extract the coordinated of the pointer. However, we want
+					to highlight the closest actual value in the data, not an interpolated value on the screen.
+					<code>x</code> and <code>y</code> values of where the mouse is the lines should be on hover, we need to
+				</p>
 			<pre>
-			<code class="language-javascript">const axisOpacity = 0.5;
-			const yAxisGenerator = d3.axisLeft()
-				.scale(yScale)
-				.tickValues(yScale.domain());
 
-			bounds.append("g")
-				.call(yAxisGenerator)
-				.attr("opacity", axisOpacity);
-
-			const xAxisGenerator = d3.axisBottom()
-				.scale(xScale);
-			bounds.append("g")
-				.call(xAxisGenerator)
-				.style("transform", `translateY(${
-					dimensions.boundedHeight
-				}px)`).attr("opacity", axisOpacity);</code>
-			</pre>
-			<p>
-				... and some interactivity for mouse hover. Here, I'm just replicating close to how the hover works on
-				<a href="https://intervals.icu">intervals.icu</a>.
-			</p>
-			<pre>
 			<code class="language-javascript">const y_tooltip = svg.append("text")
-				.attr("id", "y-tooltip")
-				.attr("x", dimensions.margin.left/2)
-				.attr("y", dimensions.height/2 - dimensions.margin.top)
-				.attr("font-size", "10px")
-				.attr("fill", "teal")
-				.attr("dominant-baseline", "middle")
-				.attr("text-anchor", "right")
-				.text("");
-
-			const verticalLine = bounds.append("line")
-				.attr("class", "mouse-line")
-				.style("stroke", "black")
-				.style("stroke-width", "1px")
-				.style("opacity", 0); // Hidden at the start
-
-			const horizontalLine = bounds.append("line")
-				.attr("class", "mouse-line")
-				.style("stroke", "black")
-				.style("stroke-width", "1px")
-				.style("opacity", 0); // Hidden at the start
+        .attr("id", "y-tooltip")
+        .attr("x", dimensions.margin.left / 2)
+        .attr("y", dimensions.boundedHeight / 2 + dimensions.margin.top)
+        .attr("font-size", "10px")
+        .attr("fill", "teal")
+        .attr("dominant-baseline", "middle")
+        .attr("text-anchor", "right")
+        .attr("dx", "-6px")
+        .text("");
 
 			const bisect = d3.bisector(d => xValue(d)).center;
 
 			svg.on("mousemove", function(event) {
 				const [xMouse, yMouse] = d3.pointer(event); // Get mouse position
+				// if the mouse is hovering over the chart bounds
 				if (
 					xMouse >= dimensions.margin.left && xMouse <= dimensions.width - dimensions.margin.right
 					&& yMouse <= dimensions.height - dimensions.margin.bottom && yMouse >= dimensions.margin.top
@@ -558,23 +694,20 @@ const xScale = d3.scaleLinear()
 						.transition()
 						.duration(60)
 						.attr("x1", xScale(xMouseTime))
-						.attr("y1", dimensions.height - dimensions.margin.bottom)
 						.attr("x2", xScale(xMouseTime))
-						.attr("y2", dimensions.margin.top)
 						.style("opacity", axisOpacity);
 
 					horizontalLine
 						.transition()
 						.duration(60)
 						.attr("y1", yScale(dataset[i].smooth_power))
-						.attr("x1", 0)
 						.attr("y2", yScale(dataset[i].smooth_power))
-						.attr("x2", dimensions.width)
 						.style("opacity", axisOpacity);
 
 					y_tooltip.text(dataset[i].smooth_power.toFixed(0))
 
 				} else {
+					// the mouse "exsits" the chart
 					verticalLine.style("opacity", 0)
 					horizontalLine.style("opacity", 0)
 				}
@@ -586,7 +719,8 @@ const xScale = d3.scaleLinear()
 			</p>
 			<div class="col-md-12" id="wrapper"></div>
 		</article>
-</main>
+	</main>
+	</section>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
 		integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>

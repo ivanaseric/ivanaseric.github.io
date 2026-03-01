@@ -50,23 +50,20 @@ export function power_chart(container_id, {width, dataset}) {
 
     const zonesGradient = []
     for (let i = 0; i < zoneBoundaries.length - 1; i++) {
-//        check that data actually contains the zone
-        if (zoneBoundaries[i] <= yScale.domain()[1]) {
-            // Add the "lower" boundary for the zone
-            zonesGradient.push({
-                'offset': `${
-                    100 - 100 * (yScale(zoneBoundaries[i]) / yScale.range()[0])
-                }%`,
-                'color': zoneColors[i]
-            });
-            // Add the "upper" boundary for the zone
-            zonesGradient.push({
-                'offset': `${
-                    100 - 100 * (yScale(zoneBoundaries[i + 1]) / yScale.range()[0])
-                }%`,
-                'color': zoneColors[i]
-            });
-        }
+        // Add the "lower" boundary for the zone
+        zonesGradient.push({
+            'offset': `${
+                100 - 100 * (yScale(zoneBoundaries[i]) / yScale.range()[0])
+            }%`,
+            'color': zoneColors[i]
+        });
+        // Add the "upper" boundary for the zone
+        zonesGradient.push({
+            'offset': `${
+                100 - 100 * (yScale(zoneBoundaries[i + 1]) / yScale.range()[0])
+            }%`,
+            'color': zoneColors[i]
+        });
     }
 
     // Set the gradient
@@ -81,12 +78,8 @@ export function power_chart(container_id, {width, dataset}) {
         .data(zonesGradient)
         .enter()
         .append("stop")
-        .attr("offset", function (d) {
-            return d.offset;
-        })
-        .attr("stop-color", function (d) {
-            return d.color;
-        });
+        .attr("offset", (d) => d.offset)
+        .attr("stop-color", (d) => d.color);
 
     const alpha = 0.3
     const areaOutline = d3.area()
@@ -133,20 +126,25 @@ export function power_chart(container_id, {width, dataset}) {
     const y_tooltip = svg.append("text")
         .attr("id", "y-tooltip")
         .attr("x", dimensions.margin.left / 2)
-        .attr("y", dimensions.height / 2 - dimensions.margin.top)
+        .attr("y", dimensions.boundedHeight / 2 + dimensions.margin.top)
         .attr("font-size", "10px")
         .attr("fill", "teal")
         .attr("dominant-baseline", "middle")
         .attr("text-anchor", "right")
+        .attr("dx", "-6px")
         .text("");
 
     const verticalLine = bounds.append("line")
+        .attr("y1", dimensions.height - dimensions.margin.bottom)
+        .attr("y2", dimensions.margin.top)
         .attr("class", "mouse-line")
         .style("stroke", "black")
         .style("stroke-width", "1px")
         .style("opacity", 0); // Hidden at the start
 
     const horizontalLine = bounds.append("line")
+        .attr("x1", 0)
+        .attr("x2", dimensions.width)
         .attr("class", "mouse-line")
         .style("stroke", "black")
         .style("stroke-width", "1px")
@@ -165,20 +163,16 @@ export function power_chart(container_id, {width, dataset}) {
 
             verticalLine
                 .transition()
-                .duration(60)
+                .duration(20)
                 .attr("x1", xScale(xMouseTime))
-                .attr("y1", dimensions.height - dimensions.margin.bottom)
                 .attr("x2", xScale(xMouseTime))
-                .attr("y2", dimensions.margin.top)
                 .style("opacity", axisOpacity);
 
             horizontalLine
                 .transition()
-                .duration(60)
+                .duration(20)
                 .attr("y1", yScale(dataset[i].smooth_power))
-                .attr("x1", 0)
                 .attr("y2", yScale(dataset[i].smooth_power))
-                .attr("x2", dimensions.width)
                 .style("opacity", axisOpacity);
 
             y_tooltip.text(dataset[i].smooth_power.toFixed(0))
