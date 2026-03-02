@@ -1,58 +1,879 @@
 <!DOCTYPE html>
-<link rel="shortcut icon" type="image/png" href="favicon.ico"/>
-<html style = "height: 100%;">
+<link rel="shortcut icon" type="image/png" href="favicon.ico" xmlns="http://www.w3.org/1999/html"
+      xmlns="http://www.w3.org/1999/html"/>
+<html lang="en">
 <head>
-	<title>Ivana Seric</title>
-	<link rel="stylesheet" href="style.css"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Data Viz with D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-ghcolors.min.css"
+          integrity="sha512-8IZwRS36BrHutOtXP+S9ZLe/5MubhjJ26t1Kf9RYRt2kQi7brb8mLAKuJDX3qPJZ2U4Wg1cLPigCQVAxscTjtA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" href="style.css"/>
 </head>
-<body>
-<div>
-	<div class="center-content">
-		<header>
-			<div>
-				<h2>Ivana Seric</h2>
-				<p>
-					Sr. Product Scientist at  <a href="https://teamworks.com/">Teamworks</a><br>
-					This page is a WIP. See my
-					<a href="https://www.linkedin.com/in/ivana-seric-503b4731/" target="_blank">LinkedIn page</a>
-					 for more up-to-date information.
-				</p>
-			</div>
-			<div class="horizontal-line"></div>
-		</header>
-        <h2>Data Visualizations</h2>
-        <h3>Breakup of liquid metal filaments</h3>
-            <div class="inline-video">
-            <iframe width="560" height="315"
-                    src="https://www.youtube.com/embed/zKPJI_O1S5U?si=QRlgapCNQkKbpkLc"
-                    title="YouTube video player" frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
-            </iframe>
-
-            </div>
-            <p class="incline-dataviz-description">
-                A numerical simulations of metal filaments on a solid substrate.
-                Liquefied by a laser, the filaments breakup governed by the
-                <a href="https://en.wikipedia.org/wiki/Plateau%E2%80%93Rayleigh_instability">Rayleigh-Plateau instability</a>.
-                The
-                <a href="https://en.wikipedia.org/wiki/Marangoni_effect">Marangoni effect</a>,
-                resulting from a different surface tension of the two metals from which the
-                filament is built, can lead to the inversion of the breakup process, producing droplets at the
-                locations where according to the Rayleigh-Plateau theory dry spots would be expected.
-                <br><br>
-                These simulations are created with
-                <a href="https://sourceforge.net/projects/gfs/">Gerris</a> fluid dynamics solver and
-                <a href="https://www.povray.org/">The Persistence of Vision</a> ray tracing software as part of
-                <a href="https://gfm.aps.org/">Galery of Fluid Motion</a> competition at the Physics of Fluids conference.
-                <br><br>
-                This work was done in collaborations with Kyle Mahady, Shahriar Afkhami & Lou Kondic
-                at New Jersey Institute of Technology.<br>
-            </p>
+<body style="visibility: hidden;">
+<noscript>
+    <style>body {
+        visibility: visible;
+    }</style>
+</noscript>
+<section class="container container-shadow p-5 mt-3 mb-3">
+    <div class="row">
+        <h1 class="c-darkred-text">Ivana Seric</h1>
+        <h6>Sr. Product Scientist at <a href="https://teamworks.com/">Teamworks</a></h6>
+        <h6>See my
+            <a href="https://www.linkedin.com/in/ivana-seric-503b4731/" target="_blank">LinkedIn page</a>
+            for more up-to-date information.
+        </h6>
     </div>
-</div>
+    <div class="horizontal-line"></div>
+    <main>
+        <h2 class="c-darkred-text">D3.js Data Visualizations Tips</h2>
+        <br>
+        <article>
+            <h3 class="mt-3">Adding discrete color bands to an area chart</h3>
+            <section title="Introduction"><br>
+                <h4>Introduction: A little bit of bike racing background</h4>
+                <p>
+                    Competitive bike racing is all about saving your energy for when it matters the most. Racers who
+                    "burn too many matches" early on in the race will have "empty" legs when it's the most important,
+                    frequently that's at the very end of the race. One way to analyze the data after the race is to
+                    look at the "matches burned" throughout the race to understand why a racer didn't have a good
+                    power output in the finishing sprint.
+                </p>
+                <p>
+                    I saw chart on <a href="https://intervals.icu">intervals.icu</a>, a fitness
+                    data platform. The chart is intended to easily spot "burned matches" in power
+                    output from a workout or bike race. The colors in the chart correspond to the power zones, which are
+                    used to determine training effect for the workout, or even just a portion of it (an interval).
+                    Power zones can be used to simplify the data and easily understand what was teh effect of the
+                    workout
+                    of a portion of the workout. Power zones also tell which energy system the workout is stressing:
+                </p>
+                <ol>
+                    <li>Warmup or active recovery</li>
+                    <li>Aerobic</li>
+                    <li>Tempo</li>
+                    <li>Lactate Threshold</li>
+                    <li>VO<sub>2</sub>Max</li>
+                    <li>Anaerobic Capacity</li>
+                    <li>Neuromuscular Power</li>
+                </ol>
+                <p>
+                    I'd be happy to talk about power zone, but let's leave that for another time and get back to our
+                    data
+                    visualization. You can read more
+                    <a href="https://www.trainingpeaks.com/blog/power-training-levels/">here</a>
+                    if you're interested
+                </p>
+                <figure>
+                    <img src="images/power_30_sec_exp_1.png"
+                         class="img-fluid"
+                         alt="An example of intervals.icu power charts charts."/>
+                    <figcaption>
+                        Figure: Activity chart example from <a href="https://intervals.icu">intervals.icu</a>.
+                    </figcaption>
+                </figure>
+                <p>
+                    The image above shows a screenshot from <a href="https://intervals.icu">intervals.icu</a>: the top
+                    panel is the raw power chart, and the bottom panel is a 30-second moving average of the power data
+                    where the colors of the area under the curve are based off power zones. The latter is the chart we
+                    will recreate here.
+                </p>
+                <p>
+                    More generally, this is a tutorial on how to create a chart with area under the curve and curve
+                    color depending on the y-value. I worked on this plot while learning D3.js for the first time, about
+                    3 years ago. I hope this tutorial will be helpful for others!
+                </p>
+                <p>
+                    Of course, in this day and age, you just ask AI to do it for you, but then you miss out on all the
+                    fun of figuring it out.
+                </p>
+                <p>
+                    Let's get started!
+                </p>
+            </section>
+
+            <section title="Outline">
+                <h4>Outline</h4>
+                <p>
+                    There are a few steps needed to create this plot. Here I'll walk through everything I did to create
+                    the chart on this webpage, even if it's not related to creating a D3 data visualization.
+                    If you're only interested in how to create a plot with bands of color based on y-value, feel free to
+                    skip ahead!
+                </p>
+                <ol>
+                    <li>Getting the data ready</li>
+                    <li>Importing the data into JavaScript</li>
+                    <li>Creating a canvas</li>
+                    <li>Creating the color bands based on power zones</li>
+                    <li>Creating the area plot</li>
+                    <li>Adding the line plot</li>
+                    <li>Adding the interactivity</li>
+                    <li>Add the axes</li>
+                </ol>
+            </section>
+
+            <section title="The Data">
+                <h4 class="mt-5">The Data</h4>
+                <p>
+                    In order to reproduce the power chart, we will need the power data from a workout or a race
+                    activity.
+                    I can download any activity data from my Garmin account in a .fit format. This is a binary format,
+                    and
+                    it takes a bit of processing, which I did in Python.
+                </p>
+                <p>
+                    In order to extract the power data from the .fit file, I used
+                    <a href="https://github.com/dtcooper/python-fitparse" target="_blank">python-fitparse</a> package.
+                    First, we'll import all packages we'll use for this data transformation
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-python-import" aria-expanded="true"
+                                    aria-controls="code-python-import">
+                                Python Script
+                            </button>
+                        </h2>
+                        <div id="code-python-import" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-python">import pandas as pd
+import fitparse</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    Now, we'll read the <code>.fit</code> file with <code>fitparse</code> using the
+                    <code>FitFile()</code>
+                    function and passing in the file path and name of our file. Since I saved the <code>.fit</code> in
+                    the same directory as my Python code is in, I only need the file name.
+                </p>
+                <p>
+                    However, there's a bit of "manual" work required to extract the time series power data. The
+                    <code>.fit</code> file contains <em>messages</em>: one for each data entry received from the sensor,
+                    in this case a power meter on my bike. There are many different fields, i.e. message <em>names</em>.
+                    Here, we will only extract the <code>timestamp</code> and <code>power</code>, but I encourage you
+                    to explore other data that's recorded in your workout activities.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-python-parse-data" aria-expanded="true"
+                                    aria-controls="code-python-parse-data">
+                                Python Script
+                            </button>
+                        </h2>
+                        <div id="code-python-parse-data" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-python">fitfile = fitparse.FitFile("19231612591_ACTIVITY.fit")
+
+# Create an empty list where we will append a dictionary for each time stamp in the data
+data_parse = []
+
+# Loop through data entries. .fit file contains "messages" for each data entry
+for record in fitfile.get_messages('record'):
+    # Create an empty dictionary for each time stamp
+    data_row = {}
+    for data in record:
+        if data.name in ["timestamp", "power"]:
+            data_row[data.name] = data.value
+    data_parse.append(data_row)
+
+# Create a data frame using pandas package
+raw_df = pd.DataFrame(data_parse)
+</code></pre>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    Now that we have the data extracted, we'll do a bit of transformations. First, we don't care about
+                    the time and date of each data entry, we only care about how much time elapsed from the start of the
+                    workout. We will create <code>elapsed_time</code> column in our data by subtracting the start
+                    time from all <code>timestamps</code>. Then we'll convert it to seconds.
+                    We will also need to transform the power data into a 30-second moving average.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-python-transform" aria-expanded="true"
+                                    aria-controls="code-python-transform">
+                                Python Script
+                            </button>
+                        </h2>
+                        <div id="code-python-transform" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-python">raw_df["elapsed_time"] = (raw_df.timestamp - raw_df.timestamp.iloc[0]).apply(lambda x: x.seconds)
+raw_df["smooth_power"] = raw_df["power"].fillna(0).rolling(30, center=True, min_periods=1).mean()
+raw_df.drop("timestamp", axis=1, inplace=True)
+</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    Lastly, we'll export the data in <code>.csv</code> file.
+                </p>
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-python-export" aria-expanded="true"
+                                    aria-controls="code-python-export">
+                                Python Script
+                            </button>
+                        </h2>
+                        <div id="code-python-export" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+                                <pre><code class="language-python">raw_df.to_csv("cycling_activity_" + activity_id + ".csv", index=False)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    We won't actually need the <code>power</code> column for this plot, but I decided to export it in
+                    case
+                    I wanted to create the "raw power" chart later on. The data extraction part is over, and now the fun
+                    part begins!
+                </p>
+            </section>
+            <section title="Importing the data in JavaScript">
+                <h4 class="mt-5">Importing the data in JavaScript</h4>
+                <p>
+                    Well, it's almost time for the fun part. We need to be able to read the data from the
+                    <code>.csv</code>
+                    file in this website using JavaScript. Since this is a static webpage here (no web server to <em>fetch</em>
+                    the data from the backend) and I don't care about this data being public and easy to <em>scrape</em>
+                    I'll just copy the <em>csv</em> values into a JS function as a <code>string</code>.
+                    Then I'll use <code>csvParse()</code> function from D3.js to turn it into a JS object. I
+                    could have exported it as a <code>.json</code> directly, but this way we get to learn about this D3
+                    function for parsing <em>csv</em>s.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-csv" aria-expanded="true"
+                                    aria-controls="code-js-csv">
+                                <code>csv_data.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-csv" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">export function get_data () {
+	const csv_string = (
+		`elapsed_time,power,smooth_power
+		0,0.0,406.7142857142857
+		1,0.0,395.53333333333336
+		...
+		1612,0.0,115.94117647058823
+		1613,0.0,96.125`
+	);
+	return d3.csvParse(csv_string, d3.autoType);
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    Note that the <code>...</code> is the middle of the data above is just to shorten the function here.
+                </p>
+                <p>
+                    Now, we'll switch to a new JS file, I called it <code>power_chart.js</code> where we'll (finally)
+                    create the power chart.
+                </p>
+                <!--				<p>-->
+                <!--					First we'll import our <code>get_data</code> and <code>power_chart</code> functions.-->
+                <!--				</p>-->
+                <!--				<pre><code class="language-javascript">import {get_data} from "./csv_data.js";</code></pre>-->
+            </section>
+            <section title="Creating a canvas">
+                <h4 class="mt-5">Creating a canvas</h4>
+                <p>
+                    <code>D3.js</code> is not like <code>ggplot</code> or <code>matplotlib</code> where you can just
+                    pass
+                    the data you want for your <code>x</code> and <code>y</code> axis and the plot appears on the
+                    screen.
+                    First, we need to create a space on the screen for our plot. In order to do that, we need to decide
+                    what size we want the whole plot to be. Then we need to subtract some of that space for
+                    <em>margins</em> where our axis will be.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-dimensions" aria-expanded="true"
+                                    aria-controls="code-js-dimensions">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-dimensions" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">export function power_chart(container_id, {width, dataset} ) {
+	let dimensions = {
+		width: width,
+		height: 150,
+		margin: {
+			top: 5,
+			right: 0,
+			bottom: 40,
+			left: 40,
+		},
+	}
+
+	dimensions.boundedWidth = dimensions.width - dimensions.margin.left - dimensions.margin.right;
+	dimensions.boundedHeight = dimensions.height - dimensions.margin.top - dimensions.margin.bottom;
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    A side note, I've learned D3 from watching
+                    <a href="https://currankelleher.com/">Curran Kelleher</a>'s tutorials, and I still use some of the
+                    conventions and variable names from his tutorials. I highly recommend his D3.js YouTube videos and
+                    blog posts for learning D3!
+                    The convention of passing the <code>container_id</code> string and <code>props</code> object with
+                    everything else we'll need for the chart comes from Curran Kelleher.
+                </p>
+                <p>
+                    You might be wondering, why did I only include an argument for the width for the chart and not
+                    all relevant dimensions, or why did I include any dimensions at all? The reason is that I want this
+                    chart to be <em>responsive</em>, i.e. it's width will change depending on what the width of the
+                    window
+                    is.
+                </p>
+
+                <p>
+                    Now that we have our dimensions, let's initiate our <code>svg</code> element and define our chart
+                    boundaries, i.e. the <code>bounds</code>.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-bounds" aria-expanded="true"
+                                    aria-controls="code-js-bounds">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-bounds" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">    const container = d3.select(container_id)
+	container.selectAll("svg").remove()
+
+	const svg = container.append("svg")
+		.attr("width", dimensions.width)
+		.attr("height", dimensions.height)
+
+	const bounds = svg.append("g")
+		.style("transform",
+			   `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px)`)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    I owe you a couple of explanations. First, the reason for <code>.remove()</code> on the
+                    <code>svg</code> element selection from the container is because, as I mentioned earlier,
+                    the width of this chart will be responsive to the changes in the window size, and we will re-draw
+                    the chart any time the window size changes. If we didn't remove the old charts, we would end up with
+                    multiple charts on top of each other. Second, the <code>"transform"</code> will move the
+                    <code>bounds</code> from the top left corner to create our top and left margins.
+                </p>
+                <p>
+                    Defining the size of the canvas is not the only extra work we need to do compared to your favorite
+                    <code>R</code> or <code>Python</code> plotting library. Our data is in units of seconds and Watts,
+                    but we need to know how many pixels on the screen correspond to these units in both directions.
+                    In other words, we need to rescale our data into pixels on the screen!
+                    The following code first defines <em>accessor</em> functions for <code>x</code> and <code>y</code>
+                    dimensions in our plot, and then defines scales based on the range of values in the data and the
+                    sizes of the canvas we defined above.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-scales" aria-expanded="true"
+                                    aria-controls="code-js-scales">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-scales" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const yValue = d => d.smooth_power;
+	const xValue = d => d.elapsed_time/60;
+
+	const yScale = d3.scaleLinear()
+		.domain([0, d3.extent(dataset, yValue)[1]])
+		.range([dimensions.boundedHeight, 0])
+
+	const xScale = d3.scaleLinear()
+		.domain(d3.extent(dataset, xValue))
+		.range([0, dimensions.boundedWidth])</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    A gentle reminder that in computer graphics, the <code>y</code>-direction is positive pointing down
+                    and
+                    negative pointing up.
+                </p>
+                <p>
+                    This may seem a bit <em>"much"</em>, but it gives us more
+                    control. And with great control comes... a lot of lines of code to just create a line chart.
+                </p>
+            </section>
+            <section title='Defining the "gradient"'>
+                <h4 class="mt-5">Define the "gradient"</h4>
+                <p>
+                    In order to create the area colors for the power zone bands, we'll use a
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient">
+                        <code>linearGradient</code></a> SVG element. This <code>linearGradient</code> can then be
+                    applied
+                    to other SVG elements.
+                    Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html">simple
+                    example</a>
+                    of how gradient works with two colors. We're going to extend this to more colors. Our chart won't
+                    have color "gradient" strictly speaking, but this allows us to define colors that can be applied to
+                    the area and the curve.
+                </p>
+                <p>
+                    Before we start, we'll need a bit more information: we need to know where are the power zone
+                    boundaries. They can be defined in different ways, but my settings on
+                    <a href="https://intervals.icu">intervals.icu</a> below, along with the hex-values for the colors we
+                    will use.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-ftp" aria-expanded="true"
+                                    aria-controls="code-js-ftp">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-ftp" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const thresholdWatts = 244;
+	const zoneBoundaries = [
+		0, 0.55*thresholdWatts, 0.75*thresholdWatts, 0.90*thresholdWatts,
+		1.05*thresholdWatts, 1.20*thresholdWatts, 1.50*thresholdWatts, yScale.domain()[1]];
+	const zoneColors = ["#3db39f", "#3db33f", "#fcd549", "#fc9c49", "#e34074", "#8963d8", "#797388"];</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    So how do we use this "gradient" to have solid bands of color and no <em>actual</em> gradient?
+                    <!--				We'll make the parts with gradient where one color changes to the next, have zero height! -->
+                    The <code>linearGradient</code> allows us to define color zones through "stop" (and implicitly
+                    start)
+                    points, in <code>"offset"</code> property. We can add as many colors as we want (or as many as we
+                    can fit).
+                    The way we'll get the solid color "bands" for each power zone, is by using the same color
+                    twice, and by making the "gradients" where the color changes from one to the next have zero height.
+                    We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e. the percent of the
+                    boundedHeight we want each color to occupy.
+                </p>
+                <p>
+                    The data that we will pass to the <code>linearGradient</code> will be a list of dictionaries with
+                    the "offset"
+                    and "color" fields.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-zones" aria-expanded="true"
+                                    aria-controls="code-js-zones">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-zones" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const zonesGradient = []
+	for (let i=0; i < zoneBoundaries.length-1; i++){
+//        check that data actually contains the zone
+		if (zoneBoundaries[i] <= yScale.domain()[1]){
+			// Add the "lower" boundary for the zone
+			zonesGradient.push({
+				'offset': `${
+					100-100*( yScale(zoneBoundaries[i]) / yScale.range()[0] )
+				}%`,
+				'color': zoneColors[i]
+			});
+			// Add the "upper" boundary for the zone
+			zonesGradient.push({
+				'offset': `${
+					100-100*( yScale(zoneBoundaries[i+1]) / yScale.range()[0] )
+				}%`,
+				'color': zoneColors[i]
+			});
+		}
+	}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    If this is confusing, take the time to calculate (on paper) what each color band should be. It's a
+                    very simple math. Don't just take my word for it!
+                </p>
+                <p>
+                    Next, we add the <code>linearGradient</code> to our <code>bounds</code>.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-add_gradient" aria-expanded="true"
+                                    aria-controls="code-js-add_gradient">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-add_gradient" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	bounds.append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0)
+        .attr("y1", yScale(yScale.domain()[0]))
+        .attr("x2", 0)
+        .attr("y2", yScale(yScale.domain()[1]))
+        .selectAll("stop")
+        .data(zonesGradient)
+        .enter()
+        	.append("stop")
+			.attr("offset", (d) => d.offset)
+			.attr("stop-color", (d) => d.color);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section title="Area and line charts">
+                <h4 class="mt-5">Area and line charts</h4>
+                <p>
+                    Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the
+                    gradient is passed in as "fill" attribute to the area and "stroke" attribute to the line elements
+                    via a <code>url</code> to the gradient <code>id</code> we gave it above.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-area_line" aria-expanded="true"
+                                    aria-controls="code-js-area_line">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-area_line" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	// Area chart
+	const alpha = 0.3
+	const areaOutline = d3.area()
+		.x(d => xScale(xValue(d)))
+		.y0(d => yScale(yScale.domain()[0]))
+		.y1(d => yScale(yValue(d)));
+
+	bounds.append("path")
+		.attr("d", areaOutline(dataset))
+		.attr("fill", "url(#line-gradient)")
+		.attr("opacity", alpha);
+
+	// Line chart
+	const lineGeneratorSmooth = d3.line()
+		.x(d => xScale(xValue(d)))
+		.y(d => yScale(yValue(d)));
+
+	bounds.append("path")
+		.data(dataset)
+		.attr("d", lineGeneratorSmooth(dataset))
+		.attr("fill", "none")
+		.attr("stroke", "url(#line-gradient)" )
+		.attr("stroke-width", 1.5);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section title="Axis">
+                <h4 class="mt-5">Axis</h4>
+                <p>
+                    To finalize the plot, we just need to add the axis. I'll try to replicate my plot inspiration here
+                    as closely as possible.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-axis" aria-expanded="true"
+                                    aria-controls="code-js-axis">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-axis" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const axisOpacity = 0.5;
+	const yAxisGenerator = d3.axisLeft()
+		.scale(yScale)
+		.tickValues(yScale.domain());
+	bounds.append("g")
+		.call(yAxisGenerator)
+		.attr("opacity", axisOpacity);
+
+	const xAxisGenerator = d3.axisBottom()
+		.scale(xScale)
+        .tickFormat(d => d3.timeFormat("%M:%S")(new Date(d * 60 * 1000)));
+	bounds.append("g")
+		.call(xAxisGenerator)
+		.style("transform", `translateY(${
+			dimensions.boundedHeight
+		}px)`).attr("opacity", axisOpacity);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section title="The Magic of D3.js">
+                <h4 class="mt-5">The Magic of D3.js</h4>
+                <p>
+                    What is the point of doing all this work with D3.js if we don't add some interactivity?! We'll add
+                    mouse hover that shows exact <code>x</code> and <code>y</code> values. Let's add lines that
+                    guide the eye from the point being hovered to the values on the axis. First, we define the lines,
+                    but keep them hidden until the mouse hovers over.
+                </p>
+
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-hover_lines" aria-expanded="true"
+                                    aria-controls="code-hover_lines">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-hover_lines" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const verticalLine = bounds.append("line")
+		.attr("y1", dimensions.boundedHeight)
+		.style("stroke", "black")
+		.style("opacity", 0); // Hidden at the start
+
+	const horizontalLine = bounds.append("line")
+		.attr("x1", 0)
+		.style("stroke", "black")
+		.style("opacity", 0); // Hidden at the start</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    Once the mouse hovers over the chart, we can extract the coordinated of the pointer. However, we
+                    want
+                    to highlight the closest actual value in the data, not an interpolated value on the screen.
+                    We'll also add a text with exact <code>x</code> and <code>y</code> values to make it easy for the
+                    user
+                    to see those values, as opposed to having to estimate them from the ticks on the axis. Let's first
+                    initialize the variables for those values
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-hover_values" aria-expanded="true"
+                                    aria-controls="code-hover_values">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-hover_values" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const x_tooltip = svg.append("text")
+        .attr("x", 0)
+        .attr("y", dimensions.boundedHeight + dimensions.margin.top)
+        .attr("font-size", "10px")
+        .attr("fill", "black")
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "middle")
+        .attr("dy", "25px")
+        .text("");
+
+    const y_tooltip = svg.append("text")
+        .attr("id", "y-tooltip")
+        .attr("x", 0)
+        .attr("font-size", "10px")
+        .attr("fill", "black")
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "start")
+        .text("");</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p>
+                    The part of the code is a bit longer, but this is what it does:
+                    As the mouse hovers over the plot, we read off the <code>x</code> value the mouse in pointing at,
+                    but we need to find the closest value we have in the data in order to know what is the value
+                    of the <code>y</code> axis at that location. We will use <code>d3.bisector</code> to find the
+                    closest
+                    <code>x</code> value, then <code>invert</code> it to find the index in the data for that value.
+                    Finally, we will access the <code>y</code> value at that index.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-hover_final" aria-expanded="true"
+                                    aria-controls="code-hover_final">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-hover_final" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const bisect = d3.bisector(d => xValue(d)).center;
+
+	svg.on("mousemove", function(event) {
+		const [xMouse, yMouse] = d3.pointer(event); // Get mouse position
+		// if the mouse is hovering over the chart bounds
+		if (
+			xMouse >= dimensions.margin.left && xMouse <= dimensions.width - dimensions.margin.right
+			&& yMouse <= dimensions.height - dimensions.margin.bottom && yMouse >= dimensions.margin.top
+		) {
+			const xMouseTime = xScale.invert(xMouse - dimensions.margin.left);
+			const i = bisect(dataset, xMouseTime);
+
+			verticalLine
+				.transition()
+				.duration(20)
+				.attr("x1", xScale(xMouseTime))
+				.attr("x2", xScale(xMouseTime))
+                .attr("y2", yScale(dataset[i].smooth_power))
+				.style("opacity", axisOpacity);
+			horizontalLine
+				.transition()
+				.duration(20)
+                .attr("x2", xScale(xMouseTime))
+				.attr("y1", yScale(dataset[i].smooth_power))
+				.attr("y2", yScale(dataset[i].smooth_power))
+				.style("opacity", axisOpacity);
+
+			y_tooltip
+				.transition()
+				.duration(20)
+                .attr("y", yScale(dataset[i].smooth_power))
+				.text(dataset[i].smooth_power.toFixed(0))
+			x_tooltip
+				.transition()
+				.duration(20)
+				.attr("x", dimensions.margin.left + xScale(xMouseTime))
+                .text(d3.timeFormat("%M:%S")(new Date(dataset[i].elapsed_time * 1000)))
+
+		} else {
+			// the mouse "exits" the bounds
+			verticalLine.style("opacity", 0)
+			horizontalLine.style("opacity", 0)
+		}
+	});
+} // closing braces for the power_chart function</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p>
+                    Believe it or not, we are done with the D3.js part! Now, all we need to do is call the
+                    <code>power_chart</code> function with correct arguments.
+                </p>
+                <div class="col-md-12" id="wrapper"></div>
+            </section>
+            <section title="Our main JavaScript module">
+                <h4 class="mt-5">Our main JavaScript module</h4>
+                <p>
+                    I mentioned earlier that we will want the chart to be responsive to the size of the window that the
+                    website is being viewed on. This is where we configure that! The code below reads in the size of the
+                    <code>div</code> we allocated for the chart, and then renders teh chart with that size. The last row
+                    add an <em>Event Listener</em> that re-renders the chart any time the window size changes.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-main_js" aria-expanded="true"
+                                    aria-controls="code-main_js">
+                                <code>main.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-main_js" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	import {get_data} from "./csv_data.js";
+import {power_chart} from "./power_chart.js"
+
+async function chartResize() {
+    const data_js = get_data();
+    var chartDiv = document.getElementById("wrapper");
+    var width = chartDiv.clientWidth;
+    power_chart("#wrapper", {"width": width, dataset: data_js})
+}
+
+// first render
+await chartResize();
+window.addEventListener('resize', chartResize);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section title="Final Remarks">
+                <h4 class="mt-5">Final Remarks</h4>
+                <p>
+                    If you have made it this far, <b>congratulations!</b> You've gone from zero knowledge of
+                    D3.js to learning how to make a super custom and interactive data visualization! Best of all,
+                    you can use the template shown here to build other charts!
+                </p>
+                <p>
+                    Safe sails on your data viz journey!
+                </p>
+            </section>
+        </article>
+    </main>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+<script src="static/js/csv_data.js" type="module"></script>
+<script src="static/js/power_chart.js" type="module"></script>
+<script src="static/js/power_chart_main.js" type="module"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"
+        integrity="sha512-HiD3V4nv8fcjtouznjT9TqDNDm1EXngV331YGbfVGeKUoH+OLkRTCMzA34ecjlgSQZpdHZupdSrqHY+Hz3l6uQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"
+        integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    // Helper function
+    let domReady = (cb) => {
+        document.readyState === 'interactive' || document.readyState === 'complete'
+            ? cb()
+            : document.addEventListener('DOMContentLoaded', cb);
+    };
+
+    domReady(() => {
+        // Display body when DOM is loaded
+        document.body.style.visibility = 'visible';
+    });
+</script>
 </body>
 </html>
