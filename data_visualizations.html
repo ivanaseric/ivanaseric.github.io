@@ -32,7 +32,26 @@
         <!--        <h2 class="c-darkred-text">D3.js Data Visualization Tips</h2>-->
         <br>
         <article>
-            <h3 class="mt-3 c-darkred-text">A Complete Guide to Interactive and Responsive Data Visualization</h3>
+            <h3 class="mt-3 c-darkred-text">A Complete Guide to Custom, Interactive and Responsive Data
+                Visualizations with D3</h3>
+            <p>
+                Starting out with D3.js can be overwhelming, especially for those that come from data background
+                and don't have much exposure to JavaScript. I promise that the interactivity and complete control
+                of your data visualizations are 100% worth it!
+            </p>
+            <p>
+                This guide is intended to give you all the building blocks you need to create an interactive, responsive
+                and specially customized data visualizations. For a learning example, we'll use some of my personal
+                cycling data, and we'll replicate (closely, but not exactly) one of my favorite data visualizations for
+                cycling.
+            </p>
+            <p>
+                Of course, in this day and age, you just ask AI to do it for you, but then you would miss out on all
+                the fun of figuring something out.
+            </p>
+            <p>
+                Get some coffee! Open a code editor! Let's get started!
+            </p>
             <section title="Introduction"><br>
                 <h4>Introduction: A little bit of bike racing background</h4>
                 <p>
@@ -43,7 +62,7 @@
                     power output in the finishing sprint.
                 </p>
                 <p>
-                    I saw chart on <a href="https://intervals.icu">intervals.icu</a>, a fitness
+                    I saw chart on <a href="https://intervals.icu" target="_blank">intervals.icu</a>, a fitness
                     data platform. The chart is intended to easily spot "burned matches" in power
                     output from a workout or bike race. The colors in the chart correspond to the power zones, which are
                     used to determine training effect for the workout, or even just a portion of it (an interval).
@@ -53,7 +72,7 @@
                 </p>
                 <ol>
                     <li>Warmup or active recovery</li>
-                    <li>Aerobic</li>
+                    <li>Endurance</li>
                     <li>Tempo</li>
                     <li>Lactate Threshold</li>
                     <li>VO<sub>2</sub>Max</li>
@@ -61,10 +80,9 @@
                     <li>Neuromuscular Power</li>
                 </ol>
                 <p>
-                    I'd be happy to talk about power zone, but let's leave that for another time and get back to our
-                    data
-                    visualization. You can read more
-                    <a href="https://www.trainingpeaks.com/blog/power-training-levels/">here</a>
+                    I'd be happy to talk about power zones all day long, but let's leave that for another time and get
+                    back to our data visualization. You can read more
+                    <a href="https://www.trainingpeaks.com/blog/power-training-levels/" target="_blank">here</a>
                     if you're interested
                 </p>
                 <figure>
@@ -79,19 +97,8 @@
                     The image above shows a screenshot from <a href="https://intervals.icu">intervals.icu</a>: the top
                     panel is the raw power chart, and the bottom panel is a 30-second moving average of the power data
                     where the colors of the area under the curve are based off power zones. The latter is the chart we
-                    will recreate here.
-                </p>
-                <p>
-                    More generally, this is a tutorial on how to create a chart with area under the curve and curve
-                    color depending on the y-value. I worked on this plot while learning D3.js for the first time, about
+                    will recreate here. I first re-created this chart while learning D3.js for the first time, about
                     3 years ago. I hope this tutorial will be helpful for others!
-                </p>
-                <p>
-                    Of course, in this day and age, you just ask AI to do it for you, but then you miss out on all the
-                    fun of figuring it out.
-                </p>
-                <p>
-                    Let's get started!
                 </p>
             </section>
 
@@ -104,18 +111,18 @@
                     skip ahead!
                 </p>
                 <ol>
-                    <li>Getting the data ready</li>
-                    <li>Importing the data into JavaScript</li>
-                    <li>Creating a canvas</li>
-                    <li>Creating the color bands based on power zones</li>
-                    <li>Creating the area plot</li>
-                    <li>Adding the line plot</li>
-                    <li>Adding the interactivity</li>
-                    <li>Add the axes</li>
+                    <li><a href="#sec-data">Getting the data ready</a></li>
+                    <li><a href="#sec-import-data">Importing the data into JavaScript</a></li>
+                    <li><a href="#sec-canvas">Creating a canvas</a></li>
+                    <li><a href="#sec-gradient">Creating the color bands based on power zones</a></li>
+                    <li><a href="#sec-chart">Creating the area and line plot</a></li>
+                    <li><a href="#sec-axis">Add the axes</a></li>
+                    <li><a href="#sec-magic">Adding the interactivity</a></li>
+                    <li><a href="#sec-responsive">Adding Responsiveness</a></li>
                 </ol>
             </section>
 
-            <section title="The Data">
+            <section id="sec-data" title="The Data">
                 <h4 class="mt-5">The Data</h4>
                 <p>
                     In order to reproduce the power chart, we will need the power data from a workout or a race
@@ -245,7 +252,7 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     part begins!
                 </p>
             </section>
-            <section title="Importing the data in JavaScript">
+            <section id="sec-import-data" title="Importing the data in JavaScript">
                 <h4 class="mt-5">Importing the data in JavaScript</h4>
                 <p>
                     Well, it's almost time for the fun part. We need to be able to read the data from the
@@ -287,15 +294,11 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     Note that the <code>...</code> is the middle of the data above is just to shorten the function here.
                 </p>
                 <p>
-                    Now, we'll switch to a new JS file, I called it <code>power_chart.js</code> where we'll (finally)
+                    Now, we'll switch to a new JS file, I called it <code>power_chart.js</code> where we'll
                     create the power chart.
                 </p>
-                <!--				<p>-->
-                <!--					First we'll import our <code>get_data</code> and <code>power_chart</code> functions.-->
-                <!--				</p>-->
-                <!--				<pre><code class="language-javascript">import {get_data} from "./csv_data.js";</code></pre>-->
             </section>
-            <section title="Creating a canvas">
+            <section id="sec-canvas" title="Creating a canvas">
                 <h4 class="mt-5">Creating a canvas</h4>
                 <p>
                     <code>D3.js</code> is not like <code>ggplot</code> or <code>matplotlib</code> where you can just
@@ -338,7 +341,8 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                 </div>
                 <p class="mt-3">
                     A side note, I've learned D3 from watching
-                    <a href="https://currankelleher.com/">Curran Kelleher</a>'s tutorials, and I still use some of the
+                    <a href="https://currankelleher.com/" target="_blank">Curran Kelleher</a>'s tutorials, and I still
+                    use some of the
                     conventions and variable names from his tutorials. I highly recommend his D3.js YouTube videos and
                     blog posts for learning D3!
                     The convention of passing the <code>container_id</code> string and <code>props</code> object with
@@ -432,25 +436,26 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     control. And with great control comes... a lot of lines of code to just create a line chart.
                 </p>
             </section>
-            <section title='Defining the "gradient"'>
+            <section id="sec-gradient" title='Defining the "gradient"'>
                 <h4 class="mt-5">Define the "gradient"</h4>
                 <p>
                     In order to create the area colors for the power zone bands, we'll use a
-                    <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient">
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient"
+                       target="_blank">
                         <code>linearGradient</code></a> SVG element. This <code>linearGradient</code> can then be
                     applied
                     to other SVG elements.
-                    Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html">simple
+                    Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html" target="_blank">simple
                     example</a>
                     of how gradient works with two colors. We're going to extend this to more colors. Our chart won't
                     have color "gradient" strictly speaking, but this allows us to define colors that can be applied to
                     the area and the curve.
                 </p>
                 <p>
-                    Before we start, we'll need a bit more information: we need to know where are the power zone
-                    boundaries. They can be defined in different ways, but my settings on
-                    <a href="https://intervals.icu">intervals.icu</a> below, along with the hex-values for the colors we
-                    will use.
+                    Before we continue, we'll need a bit more information: we need to know where the power zone
+                    boundaries are. They can be defined in different ways, but my settings on
+                    <a href="https://intervals.icu" target="_blank">intervals.icu</a> are below, along with the
+                    hex-values for the colors we will use.
                 </p>
                 <div class="accordion">
                     <div class="accordion-item">
@@ -559,7 +564,7 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     </div>
                 </div>
             </section>
-            <section title="Area and line charts">
+            <section id="sec-charts" title="Area and line charts">
                 <h4 class="mt-5">Area and line charts</h4>
                 <p>
                     Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the
@@ -605,7 +610,7 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     </div>
                 </div>
             </section>
-            <section title="Axis">
+            <section id="sec-axis" title="Axis">
                 <h4 class="mt-5">Axis</h4>
                 <p>
                     To finalize the plot, we just need to add the axis. I'll try to replicate my plot inspiration here
@@ -643,7 +648,7 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     </div>
                 </div>
             </section>
-            <section title="The Magic of D3.js">
+            <section id="sec-magic" title="The Magic of D3.js">
                 <h4 class="mt-5">The Magic of D3.js</h4>
                 <p>
                     What is the point of doing all this work with D3.js if we don't add some interactivity?! We'll add
@@ -794,7 +799,7 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                 </p>
                 <div class="col-md-12" id="wrapper"></div>
             </section>
-            <section title="Our main JavaScript module">
+            <section id="sec-responsive" title="Our main JavaScript module">
                 <h4 class="mt-5">Our main JavaScript module</h4>
                 <p>
                     I mentioned earlier that we will want the chart to be responsive to the size of the window that the
