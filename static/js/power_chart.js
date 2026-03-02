@@ -7,7 +7,7 @@ export function power_chart(container_id, {width, dataset}) {
             top: 5,
             right: 0,
             bottom: 40,
-            left: 40,
+            left: 55,
         },
     }
 
@@ -108,46 +108,47 @@ export function power_chart(container_id, {width, dataset}) {
     const yAxisGenerator = d3.axisLeft()
         .scale(yScale)
         .tickValues(yScale.domain());
-
     bounds.append("g")
         .call(yAxisGenerator)
         .attr("opacity", axisOpacity);
 
     const xAxisGenerator = d3.axisBottom()
-        .scale(xScale);
+        .scale(xScale)
+        .tickFormat(d => d3.timeFormat("%M:%S")(new Date(d * 60 * 1000)))
     bounds.append("g")
         .call(xAxisGenerator)
-        .style("transform", `translateY(${
-            dimensions.boundedHeight
-        }px)`).attr("opacity", axisOpacity);
+        .style(
+            "transform", `translateY(${dimensions.boundedHeight}px)`
+        ).attr("opacity", axisOpacity);
 
 
     //  Add interactivity
-    const y_tooltip = svg.append("text")
-        .attr("id", "y-tooltip")
-        .attr("x", dimensions.margin.left / 2)
-        .attr("y", dimensions.boundedHeight / 2 + dimensions.margin.top)
+    const x_tooltip = svg.append("text")
+        .attr("x", 0)
+        .attr("y", dimensions.boundedHeight + dimensions.margin.top)
         .attr("font-size", "10px")
-        .attr("fill", "teal")
-        .attr("dominant-baseline", "middle")
-        .attr("text-anchor", "right")
-        .attr("dx", "-6px")
+        .attr("fill", "black")
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "middle")
+        .attr("dy", "25px")
+        .text("");
+
+    const y_tooltip = svg.append("text")
+        .attr("x", 0)
+        .attr("font-size", "10px")
+        .attr("fill", "black")
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "start")
         .text("");
 
     const verticalLine = bounds.append("line")
-        .attr("y1", dimensions.height - dimensions.margin.bottom)
-        .attr("y2", dimensions.margin.top)
-        .attr("class", "mouse-line")
+        .attr("y1", dimensions.boundedHeight)
         .style("stroke", "black")
-        .style("stroke-width", "1px")
         .style("opacity", 0); // Hidden at the start
 
     const horizontalLine = bounds.append("line")
         .attr("x1", 0)
-        .attr("x2", dimensions.width)
-        .attr("class", "mouse-line")
         .style("stroke", "black")
-        .style("stroke-width", "1px")
         .style("opacity", 0); // Hidden at the start
 
     const bisect = d3.bisector(d => xValue(d)).center;
@@ -166,16 +167,27 @@ export function power_chart(container_id, {width, dataset}) {
                 .duration(20)
                 .attr("x1", xScale(xMouseTime))
                 .attr("x2", xScale(xMouseTime))
+                .attr("y2", yScale(dataset[i].smooth_power))
                 .style("opacity", axisOpacity);
 
             horizontalLine
                 .transition()
                 .duration(20)
+                .attr("x2", xScale(xMouseTime))
                 .attr("y1", yScale(dataset[i].smooth_power))
                 .attr("y2", yScale(dataset[i].smooth_power))
                 .style("opacity", axisOpacity);
 
-            y_tooltip.text(dataset[i].smooth_power.toFixed(0))
+            y_tooltip
+                .transition()
+                .duration(20)
+                .attr("y", yScale(dataset[i].smooth_power))
+                .text(dataset[i].smooth_power.toFixed(0))
+            x_tooltip
+                .transition()
+                .duration(20)
+                .attr("x", dimensions.margin.left + xScale(xMouseTime))
+                .text(d3.timeFormat("%M:%S")(new Date(dataset[i].elapsed_time * 1000)))
 
         } else {
             verticalLine.style("opacity", 0)

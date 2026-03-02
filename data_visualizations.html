@@ -536,7 +536,6 @@ raw_df.drop("timestamp", axis=1, inplace=True)
 				  </div>
 				</div>
 			</section>
-
 			<section title="Area and line charts">
 				<h4 class="mt-5">Area and line charts</h4>
 				<p>
@@ -604,13 +603,13 @@ raw_df.drop("timestamp", axis=1, inplace=True)
 	const yAxisGenerator = d3.axisLeft()
 		.scale(yScale)
 		.tickValues(yScale.domain());
-
 	bounds.append("g")
 		.call(yAxisGenerator)
 		.attr("opacity", axisOpacity);
 
 	const xAxisGenerator = d3.axisBottom()
-		.scale(xScale);
+		.scale(xScale)
+        .tickFormat(d => d3.timeFormat("%M:%S")(new Date(d * 60 * 1000)));
 	bounds.append("g")
 		.call(xAxisGenerator)
 		.style("transform", `translateY(${
@@ -642,19 +641,13 @@ raw_df.drop("timestamp", axis=1, inplace=True)
 					<div id="code-hover_lines" class="accordion-collapse collapse show">
 					  <div class="accordion-body">
 <pre><code class="language-javascript">	const verticalLine = bounds.append("line")
-		.attr("y1", dimensions.height - dimensions.margin.bottom)
-		.attr("y2", dimensions.margin.top)
-		.attr("class", "mouse-line")
+		.attr("y1", dimensions.boundedHeight)
 		.style("stroke", "black")
-		.style("stroke-width", "1px")
 		.style("opacity", 0); // Hidden at the start
 
 	const horizontalLine = bounds.append("line")
 		.attr("x1", 0)
-		.attr("x2", dimensions.width)
-		.attr("class", "mouse-line")
 		.style("stroke", "black")
-		.style("stroke-width", "1px")
 		.style("opacity", 0); // Hidden at the start</code></pre>
 					  </div>
 					</div>
@@ -663,61 +656,117 @@ raw_df.drop("timestamp", axis=1, inplace=True)
 				<p>
 					Once the mouse hovers over the chart, we can extract the coordinated of the pointer. However, we want
 					to highlight the closest actual value in the data, not an interpolated value on the screen.
-					<code>x</code> and <code>y</code> values of where the mouse is the lines should be on hover, we need to
+					We'll also add a text with exact <code>x</code> and <code>y</code> values to make it easy for the user
+					to see those values, as opposed to having to estimate them from the ticks on the axis. Let's first
+					initialize the variables for those values
 				</p>
-			<pre>
-
-			<code class="language-javascript">const y_tooltip = svg.append("text")
-        .attr("id", "y-tooltip")
-        .attr("x", dimensions.margin.left / 2)
-        .attr("y", dimensions.boundedHeight / 2 + dimensions.margin.top)
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-hover_values" aria-expanded="true"
+							  aria-controls="code-hover_values">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-hover_values" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const x_tooltip = svg.append("text")
+        .attr("x", 0)
+        .attr("y", dimensions.boundedHeight + dimensions.margin.top)
         .attr("font-size", "10px")
-        .attr("fill", "teal")
-        .attr("dominant-baseline", "middle")
-        .attr("text-anchor", "right")
-        .attr("dx", "-6px")
+        .attr("fill", "black")
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "middle")
+        .attr("dy", "25px")
         .text("");
 
-			const bisect = d3.bisector(d => xValue(d)).center;
+    const y_tooltip = svg.append("text")
+        .attr("id", "y-tooltip")
+        .attr("x", 0)
+        .attr("font-size", "10px")
+        .attr("fill", "black")
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "start")
+        .text("");</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
 
-			svg.on("mousemove", function(event) {
-				const [xMouse, yMouse] = d3.pointer(event); // Get mouse position
-				// if the mouse is hovering over the chart bounds
-				if (
-					xMouse >= dimensions.margin.left && xMouse <= dimensions.width - dimensions.margin.right
-					&& yMouse <= dimensions.height - dimensions.margin.bottom && yMouse >= dimensions.margin.top
-				) {
-					const xMouseTime = xScale.invert(xMouse - dimensions.margin.left);
-					const i = bisect(dataset, xMouseTime);
+				<p>
+					The part of the code is a bit longer, but this is what it does:
+					As the mouse hovers over the plot, we read off the <code>x</code> value the mouse in pointing at,
+					but we need to find the closest value we have in the data in order to know what is the value
+					of the <code>y</code> axis at that location. We will use <code>d3.bisector</code> to find the closest
+					<code>x</code> value, then <code>invert</code> it to find the index in the data for that value.
+					Finally, we will access the <code>y</code> value at that index.
+				</p>
+				<div class="accordion">
+				  <div class="accordion-item">
+					<h2 class="accordion-header">
+					  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+							  data-bs-target="#code-hover_final" aria-expanded="true"
+							  aria-controls="code-hover_final">
+						  <code>power_chart.js</code> (still inside the <code>power_chart</code> function.)
+					  </button>
+					</h2>
+					<div id="code-hover_final" class="accordion-collapse collapse show">
+					  <div class="accordion-body">
+<pre><code class="language-javascript">	const bisect = d3.bisector(d => xValue(d)).center;
 
-					verticalLine
-						.transition()
-						.duration(60)
-						.attr("x1", xScale(xMouseTime))
-						.attr("x2", xScale(xMouseTime))
-						.style("opacity", axisOpacity);
+	svg.on("mousemove", function(event) {
+		const [xMouse, yMouse] = d3.pointer(event); // Get mouse position
+		// if the mouse is hovering over the chart bounds
+		if (
+			xMouse >= dimensions.margin.left && xMouse <= dimensions.width - dimensions.margin.right
+			&& yMouse <= dimensions.height - dimensions.margin.bottom && yMouse >= dimensions.margin.top
+		) {
+			const xMouseTime = xScale.invert(xMouse - dimensions.margin.left);
+			const i = bisect(dataset, xMouseTime);
 
-					horizontalLine
-						.transition()
-						.duration(60)
-						.attr("y1", yScale(dataset[i].smooth_power))
-						.attr("y2", yScale(dataset[i].smooth_power))
-						.style("opacity", axisOpacity);
+			verticalLine
+				.transition()
+				.duration(20)
+				.attr("x1", xScale(xMouseTime))
+				.attr("x2", xScale(xMouseTime))
+                .attr("y2", yScale(dataset[i].smooth_power))
+				.style("opacity", axisOpacity);
+			horizontalLine
+				.transition()
+				.duration(20)
+                .attr("x2", xScale(xMouseTime))
+				.attr("y1", yScale(dataset[i].smooth_power))
+				.attr("y2", yScale(dataset[i].smooth_power))
+				.style("opacity", axisOpacity);
 
-					y_tooltip.text(dataset[i].smooth_power.toFixed(0))
+			y_tooltip
+				.transition()
+				.duration(20)
+                .attr("y", yScale(dataset[i].smooth_power))
+				.text(dataset[i].smooth_power.toFixed(0))
+			x_tooltip
+				.transition()
+				.duration(20)
+				.attr("x", dimensions.margin.left + xScale(xMouseTime))
+                .text(d3.timeFormat("%M:%S")(new Date(dataset[i].elapsed_time * 1000)))
 
-				} else {
-					// the mouse "exsits" the chart
-					verticalLine.style("opacity", 0)
-					horizontalLine.style("opacity", 0)
-				}
-			});
-		} // closing braces for the power_chart function</code>
-			</pre>
-			<p>
-				Here's the final plot:
-			</p>
-			<div class="col-md-12" id="wrapper"></div>
+		} else {
+			// the mouse "exits" the bounds
+			verticalLine.style("opacity", 0)
+			horizontalLine.style("opacity", 0)
+		}
+	});
+} // closing braces for the power_chart function</code></pre>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				<p>
+					Here's the final plot:
+				</p>
+				<div class="col-md-12" id="wrapper"></div>
+			</section>
 		</article>
 	</main>
 	</section>
