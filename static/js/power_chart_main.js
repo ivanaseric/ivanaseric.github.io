@@ -8,5 +8,6 @@ async function chartResize() {
     power_chart("#wrapper", {"width": width, dataset: data_js})
 }
 
+// first render
 await chartResize();
 window.addEventListener('resize', chartResize);

@@ -1,38 +1,50 @@
 body {
-    background-color:#FFFFFF;
+    background-color: #fffafa;
     height: 100%;
 }
+
 .container-shadow {
     box-shadow: 0 0 10px #000
 }
+
 .c-darkred-text {
     color: #cc0000;
 }
+
 .horizontal-line {
     min-height: 5px;
     max-width: 100%;
     margin: 30px 0;
     background-color: #cc0000;
 }
-.inline-video{
+
+.inline-video {
     float: right;
     margin: 10px 20px;
 }
+
 .incline-dataviz-description {
     padding: 10px 20px;
 }
 
 a:link {
-  text-decoration: none;
+    text-decoration: none;
 
 }
+
 a:visited {
-  text-decoration: none;
+    text-decoration: none;
 }
+
 a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
+
 a:active {
-  text-decoration: underline;
+    text-decoration: underline;
+}
+
+pre {
+    border: none;
 }
 
