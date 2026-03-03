@@ -18,7 +18,7 @@
         visibility: visible;
     }</style>
 </noscript>
-<section class="container container-shadow p-5 mt-3 mb-3">
+<section class="container container-shadow p-4 mt-3 mb-3">
     <div class="row">
         <h1 class="c-darkred-text">Ivana Seric</h1>
         <h6>Sr. Product Scientist at <a href="https://teamworks.com/">Teamworks</a></h6>
@@ -115,9 +115,9 @@
                     <li><a href="#sec-data">Getting the data ready</a></li>
                     <li><a href="#sec-import-data">Importing the data into JavaScript</a></li>
                     <li><a href="#sec-canvas">Creating a canvas</a></li>
+                    <li><a href="#sec-axes">Add the axes</a></li>
                     <li><a href="#sec-gradient">Creating the color bands based on power zones</a></li>
-                    <li><a href="#sec-chart">Creating the area and line plot</a></li>
-                    <li><a href="#sec-axis">Add the axes</a></li>
+                    <li><a href="#sec-charts">Creating the area and line plot</a></li>
                     <li><a href="#sec-magic">Adding the interactivity</a></li>
                     <li><a href="#sec-responsive">Adding Responsiveness</a></li>
                 </ol>
@@ -178,21 +178,16 @@ import fitparse</code></pre>
                         </h2>
                         <div id="code-python-parse-data" class="accordion-collapse collapse show">
                             <div class="accordion-body">
-<pre><code class="language-python">fitfile = fitparse.FitFile("19231612591_ACTIVITY.fit")
-
-# Create an empty list where we will append a dictionary for each time stamp in the data
+<pre><code class="language-python">fitfile = fitparse.FitFile("activity.fit")
 data_parse = []
 
-# Loop through data entries. .fit file contains "messages" for each data entry
 for record in fitfile.get_messages('record'):
-    # Create an empty dictionary for each time stamp
     data_row = {}
     for data in record:
         if data.name in ["timestamp", "power"]:
             data_row[data.name] = data.value
     data_parse.append(data_row)
 
-# Create a data frame using pandas package
 raw_df = pd.DataFrame(data_parse)
 </code></pre>
 
@@ -241,7 +236,8 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                         </h2>
                         <div id="code-python-export" class="accordion-collapse collapse show">
                             <div class="accordion-body">
-                                <pre><code class="language-python">raw_df.to_csv("cycling_activity_" + activity_id + ".csv", index=False)</code></pre>
+                                <pre><code
+                                        class="language-python">raw_df.to_csv("cycling_activity.csv", index=False)</code></pre>
                             </div>
                         </div>
                     </div>
@@ -437,6 +433,63 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     control. And with great control comes... a lot of lines of code to just create a line chart.
                 </p>
             </section>
+            <section id="sec-axes" title="Axes">
+                <h4 class="mt-5">Axes</h4>
+                <p>
+                    Let's add the axes now. This may seem strange if you come from <code>R</code> or <code>Python</code>,
+                    but you can also make a who chart and add the axes at the end. There is nothing stopping us!
+                    I'll try to replicate my plot inspiration here as closely as possible.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-axis" aria-expanded="true"
+                                    aria-controls="code-js-axis">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-axis" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	const axisOpacity = 0.5;
+	const yAxisGenerator = d3.axisLeft()
+		.scale(yScale)
+		.tickValues(yScale.domain());
+	bounds.append("g")
+		.call(yAxisGenerator)
+		.attr("opacity", axisOpacity);
+
+    // y-axis label
+    svg.append("text")
+        .attr("y", 0)
+        .attr("x", -dimensions.boundedHeight / 2)
+        .attr("font-size", "10px")
+        .attr("fill", "black")
+        .attr("opacity", axisOpacity)
+        .attr("dominant-baseline", "hanging")
+        .attr("text-anchor", "center")
+        .attr("dx", "-35px")
+        .attr("transform", "rotate(-90)")
+        .text("30s Power");
+
+	const xAxisGenerator = d3.axisBottom()
+		.scale(xScale)
+        .tickFormat(d => d3.timeFormat("%M:%S")(new Date(d * 60 * 1000)));
+	bounds.append("g")
+		.call(xAxisGenerator)
+		.style("transform", `translateY(${
+			dimensions.boundedHeight
+		}px)`).attr("opacity", axisOpacity);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    Now, we can actually see something on the screen!
+                </p>
+
+                <div class="col-md-12" id="chart_axis"></div>
+            </section>
             <section id="sec-gradient" title='Defining the "gradient"'>
                 <h4 class="mt-5">Define the "gradient"</h4>
                 <p>
@@ -444,8 +497,7 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient"
                        target="_blank">
                         <code>linearGradient</code></a> SVG element. This <code>linearGradient</code> can then be
-                    applied
-                    to other SVG elements.
+                    applied to other SVG elements.
                     Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html" target="_blank">simple
                     example</a>
                     of how gradient works with two colors. We're going to extend this to more colors. Our chart won't
@@ -593,9 +645,33 @@ raw_df.drop("timestamp", axis=1, inplace=True)
 	bounds.append("path")
 		.attr("d", areaOutline(dataset))
 		.attr("fill", "url(#line-gradient)")
-		.attr("opacity", alpha);
+		.attr("opacity", alpha);</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-3">
+                    And there you have it: an area chart with colors for our power zones!
+                </p>
+                <div class="col-md-12" id="chart_area"></div>
 
-	// Line chart
+                <p class="mt-3">
+                    But that doesn't look as nice
+                    as our inspiration chart. Let's add a line and see how we can add the same "gradient" color to the
+                    line chart.
+                </p>
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#code-js-line" aria-expanded="true"
+                                    aria-controls="code-js-line">
+                                <code>power_chart.js</code>
+                            </button>
+                        </h2>
+                        <div id="code-js-line" class="accordion-collapse collapse show">
+                            <div class="accordion-body">
+<pre><code class="language-javascript">	// Line chart
 	const lineGeneratorSmooth = d3.line()
 		.x(d => xScale(xValue(d)))
 		.y(d => yScale(yValue(d)));
@@ -610,47 +686,14 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                         </div>
                     </div>
                 </div>
-            </section>
-            <section id="sec-axis" title="Axis">
-                <h4 class="mt-5">Axis</h4>
+                <div class="col-md-12" id="chart_line"></div>
                 <p>
-                    To finalize the plot, we just need to add the axis. I'll try to replicate my plot inspiration here
-                    as closely as possible.
+                    Much better! We could stop here call it a day, but we would miss out on so much power (pun intended)
+                    we can use from D3.js.
                 </p>
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#code-js-axis" aria-expanded="true"
-                                    aria-controls="code-js-axis">
-                                <code>power_chart.js</code>
-                            </button>
-                        </h2>
-                        <div id="code-js-axis" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-<pre><code class="language-javascript">	const axisOpacity = 0.5;
-	const yAxisGenerator = d3.axisLeft()
-		.scale(yScale)
-		.tickValues(yScale.domain());
-	bounds.append("g")
-		.call(yAxisGenerator)
-		.attr("opacity", axisOpacity);
-
-	const xAxisGenerator = d3.axisBottom()
-		.scale(xScale)
-        .tickFormat(d => d3.timeFormat("%M:%S")(new Date(d * 60 * 1000)));
-	bounds.append("g")
-		.call(xAxisGenerator)
-		.style("transform", `translateY(${
-			dimensions.boundedHeight
-		}px)`).attr("opacity", axisOpacity);</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </section>
-            <section id="sec-magic" title="The Magic of D3.js">
-                <h4 class="mt-5">The Magic of D3.js</h4>
+            <section id="sec-magic" title="The Power of D3.js">
+                <h4 class="mt-5">The Power of D3.js</h4>
                 <p>
                     What is the point of doing all this work with D3.js if we don't add some interactivity?! We'll add
                     mouse hover that shows exact <code>x</code> and <code>y</code> values. Let's add lines that
@@ -856,8 +899,6 @@ window.addEventListener('resize', chartResize);</code></pre>
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="static/js/csv_data.js" type="module"></script>
-<script src="static/js/power_chart.js" type="module"></script>
 <script src="static/js/power_chart_main.js" type="module"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"
         integrity="sha512-HiD3V4nv8fcjtouznjT9TqDNDm1EXngV331YGbfVGeKUoH+OLkRTCMzA34ecjlgSQZpdHZupdSrqHY+Hz3l6uQ=="
