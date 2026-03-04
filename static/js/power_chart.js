@@ -204,8 +204,10 @@ export function power_chart(container_id, {width, dataset}) {
                 .text(d3.timeFormat("%M:%S")(new Date(dataset[i].elapsed_time * 1000)))
 
         } else {
-            verticalLine.style("opacity", 0)
-            horizontalLine.style("opacity", 0)
+            verticalLine.style("opacity", 0);
+            horizontalLine.style("opacity", 0);
+            x_tooltip.style("opacity", 0);
+            y_tooltip.style("opacity", 0);
         }
     }
 

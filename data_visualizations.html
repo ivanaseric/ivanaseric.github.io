@@ -52,7 +52,29 @@
             <p>
                 Get some coffee! Open a code editor! Let's get started!
             </p>
-            <section title="Introduction"><br>
+            <section title="Outline">
+                <h4>Outline</h4>
+                <p>
+                    We'll dive straight into the data visualization. If you're curious about how to extract data from
+                    your fitness files, check out <a href="/power_chart_data_extraction.html">my quick guide</a> that
+                    shows how I got the data that's in this visualization.
+                </p>
+                <p>
+                    There are a few steps needed to create this plot. Here I'll walk through all it takes to create any
+                    D3 data visualization. If you're only interested in how to create a plot with bands of color based
+                    on y-value, feel free to skip ahead!
+                </p>
+                <ol>
+                    <li><a href="#sec-intor">Introduction: A little bit of bike racing background</a></li>
+                    <li><a href="#sec-canvas">Canvas: A space where art lives</a></li>
+                    <li><a href="#sec-axes">Axes: A meaning to the dimensions</a></li>
+                    <li><a href="#sec-gradient">Gradient: Color bands based on power zones</a></li>
+                    <li><a href="#sec-charts">The Art: Area & line charts</a></li>
+                    <li><a href="#sec-magic">Interactivity: The Power of D3.js </a></li>
+                    <li><a href="#sec-responsive">Responsiveness: Does it fit on the screen?</a></li>
+                </ol>
+            </section>
+            <section id="sec-intro" title="Introduction"><br>
                 <h4>Introduction: A little bit of bike racing background</h4>
                 <p>
                     Competitive bike racing is all about saving your energy for when it matters the most. Racers who
@@ -85,218 +107,27 @@
                     <a href="https://www.trainingpeaks.com/blog/power-training-levels/" target="_blank">here</a>
                     if you're interested
                 </p>
-                <figure>
-                    <img src="images/power_30_sec_exp_1.png"
-                         class="img-fluid"
-                         alt="An example of intervals.icu power charts charts."/>
-                    <figcaption>
-                        Figure: Activity chart example from <a href="https://www.intervals.icu/">intervals.icu</a>.
-                    </figcaption>
-                </figure>
                 <p>
-                    The image above shows a screenshot from <a href="https://www.intervals.icu/">intervals.icu</a>: the
+                    Figure 1 shows a screenshot from <a href="https://www.intervals.icu/">intervals.icu</a>: the
                     top
                     panel is the raw power chart, and the bottom panel is a 30-second moving average of the power data
                     where the colors of the area under the curve are based off power zones. The latter is the chart we
                     will recreate here. I first re-created this chart while learning D3.js for the first time, about
                     3 years ago. I hope this tutorial will be helpful for others!
                 </p>
+                <div>
+                    <figure>
+                        <img src="images/power_30_sec_exp_1.png"
+                             class="img-fluid"
+                             alt="An example of intervals.icu power charts charts."/>
+                        <figcaption>
+                            Figure 1: Activity chart example from <a href="https://www.intervals.icu/">intervals.icu</a>.
+                        </figcaption>
+                    </figure>
+                </div>
             </section>
-
-            <section title="Outline">
-                <h4>Outline</h4>
-                <p>
-                    There are a few steps needed to create this plot. Here I'll walk through everything I did to create
-                    the chart on this webpage, even if it's not related to creating a D3 data visualization.
-                    If you're only interested in how to create a plot with bands of color based on y-value, feel free to
-                    skip ahead!
-                </p>
-                <ol>
-                    <li><a href="#sec-data">Getting the data ready</a></li>
-                    <li><a href="#sec-import-data">Importing the data into JavaScript</a></li>
-                    <li><a href="#sec-canvas">Creating a canvas</a></li>
-                    <li><a href="#sec-axes">Add the axes</a></li>
-                    <li><a href="#sec-gradient">Creating the color bands based on power zones</a></li>
-                    <li><a href="#sec-charts">Creating the area and line plot</a></li>
-                    <li><a href="#sec-magic">Adding the interactivity</a></li>
-                    <li><a href="#sec-responsive">Adding Responsiveness</a></li>
-                </ol>
-            </section>
-
-            <section id="sec-data" title="The Data">
-                <h4 class="mt-5">The Data</h4>
-                <p>
-                    In order to reproduce the power chart, we will need the power data from a workout or a race
-                    activity.
-                    I can download any activity data from my Garmin account in a .fit format. This is a binary format,
-                    and
-                    it takes a bit of processing, which I did in Python.
-                </p>
-                <p>
-                    In order to extract the power data from the .fit file, I used
-                    <a href="https://github.com/dtcooper/python-fitparse" target="_blank">python-fitparse</a> package.
-                    First, we'll import all packages we'll use for this data transformation
-                </p>
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#code-python-import" aria-expanded="true"
-                                    aria-controls="code-python-import">
-                                Python Script
-                            </button>
-                        </h2>
-                        <div id="code-python-import" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-<pre><code class="language-python">import pandas as pd
-import fitparse</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="mt-3">
-                    Now, we'll read the <code>.fit</code> file with <code>fitparse</code> using the
-                    <code>FitFile()</code>
-                    function and passing in the file path and name of our file. Since I saved the <code>.fit</code> in
-                    the same directory as my Python code is in, I only need the file name.
-                </p>
-                <p>
-                    However, there's a bit of "manual" work required to extract the time series power data. The
-                    <code>.fit</code> file contains <em>messages</em>: one for each data entry received from the sensor,
-                    in this case a power meter on my bike. There are many different fields, i.e. message <em>names</em>.
-                    Here, we will only extract the <code>timestamp</code> and <code>power</code>, but I encourage you
-                    to explore other data that's recorded in your workout activities.
-                </p>
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#code-python-parse-data" aria-expanded="true"
-                                    aria-controls="code-python-parse-data">
-                                Python Script
-                            </button>
-                        </h2>
-                        <div id="code-python-parse-data" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-<pre><code class="language-python">fitfile = fitparse.FitFile("activity.fit")
-data_parse = []
-
-for record in fitfile.get_messages('record'):
-    data_row = {}
-    for data in record:
-        if data.name in ["timestamp", "power"]:
-            data_row[data.name] = data.value
-    data_parse.append(data_row)
-
-raw_df = pd.DataFrame(data_parse)
-</code></pre>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="mt-3">
-                    Now that we have the data extracted, we'll do a bit of transformations. First, we don't care about
-                    the time and date of each data entry, we only care about how much time elapsed from the start of the
-                    workout. We will create <code>elapsed_time</code> column in our data by subtracting the start
-                    time from all <code>timestamps</code>. Then we'll convert it to seconds.
-                    We will also need to transform the power data into a 30-second moving average.
-                </p>
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#code-python-transform" aria-expanded="true"
-                                    aria-controls="code-python-transform">
-                                Python Script
-                            </button>
-                        </h2>
-                        <div id="code-python-transform" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-<pre><code class="language-python">raw_df["elapsed_time"] = (raw_df.timestamp - raw_df.timestamp.iloc[0]).apply(lambda x: x.seconds)
-raw_df["smooth_power"] = raw_df["power"].fillna(0).rolling(30, center=True, min_periods=1).mean()
-raw_df.drop("timestamp", axis=1, inplace=True)
-</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="mt-3">
-                    Lastly, we'll export the data in <code>.csv</code> file.
-                </p>
-
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#code-python-export" aria-expanded="true"
-                                    aria-controls="code-python-export">
-                                Python Script
-                            </button>
-                        </h2>
-                        <div id="code-python-export" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-                                <pre><code
-                                        class="language-python">raw_df.to_csv("cycling_activity.csv", index=False)</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="mt-3">
-                    We won't actually need the <code>power</code> column for this plot, but I decided to export it in
-                    case
-                    I wanted to create the "raw power" chart later on. The data extraction part is over, and now the fun
-                    part begins!
-                </p>
-            </section>
-            <section id="sec-import-data" title="Importing the data in JavaScript">
-                <h4 class="mt-5">Importing the data in JavaScript</h4>
-                <p>
-                    Well, it's almost time for the fun part. We need to be able to read the data from the
-                    <code>.csv</code>
-                    file in this website using JavaScript. Since this is a static webpage here (no web server to <em>fetch</em>
-                    the data from the backend) and I don't care about this data being public and easy to <em>scrape</em>
-                    I'll just copy the <em>csv</em> values into a JS function as a <code>string</code>.
-                    Then I'll use <code>csvParse()</code> function from D3.js to turn it into a JS object. I
-                    could have exported it as a <code>.json</code> directly, but this way we get to learn about this D3
-                    function for parsing <em>csv</em>s.
-                </p>
-                <div class="accordion">
-                    <div class="accordion-item">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#code-js-csv" aria-expanded="true"
-                                    aria-controls="code-js-csv">
-                                <code>csv_data.js</code>
-                            </button>
-                        </h2>
-                        <div id="code-js-csv" class="accordion-collapse collapse show">
-                            <div class="accordion-body">
-<pre><code class="language-javascript">export function get_data () {
-	const csv_string = (
-		`elapsed_time,power,smooth_power
-		0,0.0,406.7142857142857
-		1,0.0,395.53333333333336
-		...
-		1612,0.0,115.94117647058823
-		1613,0.0,96.125`
-	);
-	return d3.csvParse(csv_string, d3.autoType);
-}</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <p class="mt-3">
-                    Note that the <code>...</code> is the middle of the data above is just to shorten the function here.
-                </p>
-                <p>
-                    Now, we'll switch to a new JS file, I called it <code>power_chart.js</code> where we'll
-                    create the power chart.
-                </p>
-            </section>
-            <section id="sec-canvas" title="Creating a canvas">
-                <h4 class="mt-5">Creating a canvas</h4>
+            <section id="sec-canvas" title="Canvas: A space where art lives">
+                <h4 class="mt-5">Canvas: A space where art lives</h4>
                 <p>
                     <code>D3.js</code> is not like <code>ggplot</code> or <code>matplotlib</code> where you can just
                     pass
@@ -433,8 +264,8 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     control. And with great control comes... a lot of lines of code to just create a line chart.
                 </p>
             </section>
-            <section id="sec-axes" title="Axes">
-                <h4 class="mt-5">Axes</h4>
+            <section id="sec-axes" title="Axes: A meaning to the dimensions">
+                <h4 class="mt-5">Axes: A meaning to the dimensions</h4>
                 <p>
                     Let's add the axes now. This may seem strange if you come from <code>R</code> or <code>Python</code>,
                     but you can also make a who chart and add the axes at the end. There is nothing stopping us!
@@ -487,11 +318,10 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                 <p class="mt-3">
                     Now, we can actually see something on the screen!
                 </p>
-
                 <div class="col-md-12" id="chart_axis"></div>
             </section>
-            <section id="sec-gradient" title='Defining the "gradient"'>
-                <h4 class="mt-5">Define the "gradient"</h4>
+            <section id="sec-gradient" title="Gradient: Color bands based on power zones">
+                <h4 class="mt-5">Gradient: Color bands based on power zones</h4>
                 <p>
                     In order to create the area colors for the power zone bands, we'll use a
                     <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient"
@@ -617,8 +447,8 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     </div>
                 </div>
             </section>
-            <section id="sec-charts" title="Area and line charts">
-                <h4 class="mt-5">Area and line charts</h4>
+            <section id="sec-charts" title="The Art: Area & line charts">
+                <h4 class="mt-5">The Art: Area & line charts</h4>
                 <p>
                     Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the
                     gradient is passed in as "fill" attribute to the area and "stroke" attribute to the line elements
@@ -654,7 +484,6 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     And there you have it: an area chart with colors for our power zones!
                 </p>
                 <div class="col-md-12" id="chart_area"></div>
-
                 <p class="mt-3">
                     But that doesn't look as nice
                     as our inspiration chart. Let's add a line and see how we can add the same "gradient" color to the
@@ -686,14 +515,14 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                         </div>
                     </div>
                 </div>
-                <div class="col-md-12" id="chart_line"></div>
                 <p>
                     Much better! We could stop here call it a day, but we would miss out on so much power (pun intended)
                     we can use from D3.js.
                 </p>
+                <div class="col-md-12" id="chart_line"></div>
             </section>
-            <section id="sec-magic" title="The Power of D3.js">
-                <h4 class="mt-5">The Power of D3.js</h4>
+            <section id="sec-magic" title="Interactivity: The Power of D3.js">
+                <h4 class="mt-5">Interactivity: The Power of D3.js</h4>
                 <p>
                     What is the point of doing all this work with D3.js if we don't add some interactivity?! We'll add
                     mouse hover that shows exact <code>x</code> and <code>y</code> values. Let's add lines that
@@ -841,10 +670,9 @@ raw_df.drop("timestamp", axis=1, inplace=True)
                     Believe it or not, we are done with the D3.js part! Now, all we need to do is call the
                     <code>power_chart</code> function with correct arguments.
                 </p>
-                <div class="col-md-12" id="wrapper"></div>
             </section>
-            <section id="sec-responsive" title="Our main JavaScript module">
-                <h4 class="mt-5">Our main JavaScript module</h4>
+            <section id="sec-responsive" title="Responsiveness: Does it fit on the screen?">
+                <h4 class="mt-5">Responsiveness: Does it fit on the screen?</h4>
                 <p>
                     I mentioned earlier that we will want the chart to be responsive to the size of the window that the
                     website is being viewed on. This is where we configure that! The code below reads in the size of the
@@ -891,6 +719,12 @@ window.addEventListener('resize', chartResize);</code></pre>
                     Safe sails on your data viz journey!
                 </p>
             </section>
+
+            <div class="col-md-12 sticky" id="wrapper">
+                <figcaption class="sticky-caption">
+                    Final result is this special data visual:
+                </figcaption>
+            </div>
         </article>
     </main>
 </section>

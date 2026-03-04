@@ -1,6 +1,7 @@
 body {
     background-color: #fffafa;
     height: 100%;
+    overflow: visible;
 }
 
 .container-shadow {
@@ -48,4 +49,20 @@ pre[class*="language-"] {
     border: none;
     padding: 0;
     font-size: small;
+}
+
+.sticky {
+    position: -webkit-sticky;
+    position: sticky;
+    bottom: 0; /* The point at which the image becomes "stuck" to the top */
+    z-index: 10;
+    background-color: #fffafa;
+    padding-top: 10px;
+    border-top: lightgray 1px solid;
+    border-bottom: lightgray 1px solid;
+    /*margin-top: 10px;*/
+}
+
+.sticky-caption {
+    padding: 20px 0;
 }
