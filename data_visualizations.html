@@ -32,25 +32,26 @@
         <!--        <h2 class="c-darkred-text">D3.js Data Visualization Tips</h2>-->
         <br>
         <article>
-            <h3 class="mt-3 c-darkred-text">A Complete Guide to Custom, Interactive and Responsive Data
+            <h3 class="mt-3 c-darkred-text">A Complete Guide to Custom, Interactive, and Responsive Data
                 Visualizations with D3</h3>
             <p>
-                Starting out with D3.js can be overwhelming, especially for those that come from data background
+                Starting with D3.js can be overwhelming, especially for those who come from a Data Science background
                 and don't have much exposure to JavaScript. I promise that the interactivity and complete control
                 of your data visualizations are 100% worth it!
             </p>
             <p>
-                This guide is intended to give you all the building blocks you need to create an interactive, responsive
+                This guide is intended to give you all the building blocks you need to create an interactive,
+                responsive,
                 and specially customized data visualizations. For a learning example, we'll use some of my personal
                 cycling data, and we'll replicate (closely, but not exactly) one of my favorite data visualizations for
                 cycling.
             </p>
             <p>
-                Of course, in this day and age, you just ask AI to do it for you, but then you would miss out on all
-                the fun of figuring something out.
+                Of course, in this day and age, you could ask AI to do it for you, but then you would miss out on
+                all the fun of figuring something out.
             </p>
             <p>
-                Get some coffee! Open a code editor! Let's get started!
+                So get some coffee! Open a code editor! Let's get started!
             </p>
             <section title="Outline">
                 <h4>Outline</h4>
@@ -60,7 +61,7 @@
                     shows how I got the data that's in this visualization.
                 </p>
                 <p>
-                    There are a few steps needed to create this plot. Here I'll walk through all it takes to create any
+                    There are a few steps needed to create this plot. Here, I'll walk through all it takes to create any
                     D3 data visualization. If you're only interested in how to create a plot with bands of color based
                     on y-value, feel free to skip ahead!
                 </p>
@@ -85,12 +86,13 @@
                 </p>
                 <p>
                     I first saw this chart on <a href="https://www.intervals.icu/" target="_blank">intervals.icu</a>, a
-                    training data platform. The chart is intended to easily spot "burned matches" in power
-                    output from a workout or bike race. The colors in the chart correspond to the power zones, which are
-                    used to determine training effect for the workout, or even just a portion of it (an interval).
-                    Power zones can be used to simplify the data and easily understand what was teh effect of the
-                    workout
-                    of a portion of the workout. Power zones also tell which energy system the workout is stressing:
+                    training data platform. The chart is intended to spot "burned matches" in power
+                    output easily from a workout or bike race. The colors in the chart correspond to the power
+                    zones, which are used to determine training effect for the workout, or even just a portion of it (an
+                    interval).
+                    Power zones can be used to simplify the data and easily understand what the training effect of the
+                    workout or a portion of the workout was. In other words, power zones tell us which energy system
+                    the workout is stressing:
                 </p>
                 <ol>
                     <li>Warmup or active recovery</li>
@@ -110,8 +112,8 @@
                 <p>
                     Figure 1 shows a screenshot from <a href="https://www.intervals.icu/">intervals.icu</a>: the
                     top
-                    panel is the raw power chart, and the bottom panel is a 30-second moving average of the power data
-                    where the colors of the area under the curve are based off power zones. The latter is the chart we
+                    panel is the raw power chart, and the bottom panel is a 30-second moving average of the power data,
+                    where the colors of the area under the curve are based on power zones. The latter is the chart we
                     will recreate here. I first re-created this chart while learning D3.js for the first time, about
                     3 years ago. I hope this tutorial will be helpful for others!
                 </p>
@@ -133,8 +135,8 @@
                     pass
                     the data you want for your <code>x</code> and <code>y</code> axis and the plot appears on the
                     screen.
-                    First, we need to create a space on the screen for our plot. In order to do that, we need to decide
-                    what size we want the whole plot to be. Then we need to subtract some of that space for
+                    First, we need to create a space on the screen for our plot. To do that, we need to decide
+                    what size we want the entire plot to be. Then we need to subtract some of that space for
                     <em>margins</em> where our axis will be.
                 </p>
                 <div class="accordion">
@@ -173,15 +175,14 @@
                     use some of the
                     conventions and variable names from his tutorials. I highly recommend his D3.js YouTube videos and
                     blog posts for learning D3!
-                    The convention of passing the <code>container_id</code> string and <code>props</code> object with
-                    everything else we'll need for the chart comes from Curran Kelleher.
+                    The convention of passing the <code>container_id</code> string and the <code>props</code> object,
+                    which contains everything else we'll need for the chart, comes from Curran Kelleher.
                 </p>
                 <p>
-                    You might be wondering, why did I only include an argument for the width for the chart and not
-                    all relevant dimensions, or why did I include any dimensions at all? The reason is that I want this
-                    chart to be <em>responsive</em>, i.e. it's width will change depending on what the width of the
-                    window
-                    is.
+                    You might be wondering why I only included an argument for the width of the chart and not
+                    all relevant dimensions, or why I included any dimensions at all. The reason is that I want this
+                    chart to be <em>responsive</em>, i.e., its width will change depending on the width of the
+                    window.
                 </p>
 
                 <p>
@@ -261,15 +262,16 @@
                 </p>
                 <p>
                     This may seem a bit <em>"much"</em>, but it gives us more
-                    control. And with great control comes... a lot of lines of code to just create a line chart.
+                    control. And with great control comes... a lot of lines of code just to create space for a chart.
                 </p>
             </section>
             <section id="sec-axes" title="Axes: A meaning to the dimensions">
                 <h4 class="mt-5">Axes: A meaning to the dimensions</h4>
                 <p>
                     Let's add the axes now. This may seem strange if you come from <code>R</code> or <code>Python</code>,
-                    but you can also make a who chart and add the axes at the end. There is nothing stopping us!
-                    I'll try to replicate my plot inspiration here as closely as possible.
+                    but you can also make a whole chart and add the axes at the end. Nothing stopping us! Axes are an
+                    independent part of our chart, just a line, ticks, and numbers on the screen.
+                    I'll try to replicate the axes from my plot inspiration here as closely as possible.
                 </p>
                 <div class="accordion">
                     <div class="accordion-item">
@@ -323,19 +325,19 @@
             <section id="sec-gradient" title="Gradient: Color bands based on power zones">
                 <h4 class="mt-5">Gradient: Color bands based on power zones</h4>
                 <p>
-                    In order to create the area colors for the power zone bands, we'll use a
+                    To create the area colors for the power zone bands, we'll use a
                     <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/linearGradient"
                        target="_blank">
                         <code>linearGradient</code></a> SVG element. This <code>linearGradient</code> can then be
                     applied to other SVG elements.
                     Here's a <a href="https://d3-graph-gallery.com/graph/line_color_gradient_svg.html" target="_blank">simple
                     example</a>
-                    of how gradient works with two colors. We're going to extend this to more colors. Our chart won't
-                    have color "gradient" strictly speaking, but this allows us to define colors that can be applied to
-                    the area and the curve.
+                    of how the gradient works with two colors. We're going to extend this to more colors. Our chart
+                    won't have a color "gradient" strictly speaking, but this allows us to define colors that can be
+                    applied to the area and the curve.
                 </p>
                 <p>
-                    Before we continue, we'll need a bit more information: we need to know where the power zone
+                    Before we continue, we need more information: we need to know where the power zone
                     boundaries are. They can be defined in different ways, but my settings on
                     <a href="https://www.intervals.icu/" target="_blank">intervals.icu</a> are below, along with the
                     hex-values for the colors we will use.
@@ -366,15 +368,14 @@
                     start)
                     points, in <code>"offset"</code> property. We can add as many colors as we want (or as many as we
                     can fit).
-                    The way we'll get the solid color "bands" for each power zone, is by using the same color
+                    The way we'll get the solid color "bands" for each power zone is by using the same color
                     twice, and by making the "gradients" where the color changes from one to the next have zero height.
-                    We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e. the percent of the
-                    boundedHeight we want each color to occupy.
+                    We'll define the <code>"offset"</code> in the relative units of the y-axis, i.e., the percent of the
+                    boundedHeight, we want each color to occupy.
                 </p>
                 <p>
                     The data that we will pass to the <code>linearGradient</code> will be a list of dictionaries with
-                    the "offset"
-                    and "color" fields.
+                    the "offset" and "color" fields.
                 </p>
                 <div class="accordion">
                     <div class="accordion-item">
@@ -450,7 +451,7 @@
             <section id="sec-charts" title="The Art: Area & line charts">
                 <h4 class="mt-5">The Art: Area & line charts</h4>
                 <p>
-                    Now all that's left is to apply our linear gradient to the area and the line chart! Notice, that the
+                    Now all that's left is to apply our linear gradient to the area and the line chart! Notice that the
                     gradient is passed in as "fill" attribute to the area and "stroke" attribute to the line elements
                     via a <code>url</code> to the gradient <code>id</code> we gave it above.
                 </p>
@@ -481,7 +482,7 @@
                     </div>
                 </div>
                 <p class="mt-3">
-                    And there you have it: an area chart with colors for our power zones!
+                    And there you have it: an area chart with color-coded power zones!
                 </p>
                 <div class="col-md-12" id="chart_area"></div>
                 <p class="mt-3">
@@ -516,8 +517,8 @@
                     </div>
                 </div>
                 <p>
-                    Much better! We could stop here call it a day, but we would miss out on so much power (pun intended)
-                    we can use from D3.js.
+                    Much better! We could stop here and call it a day, but we would miss out on so much power (pun
+                    intended) from D3.js.
                 </p>
                 <div class="col-md-12" id="chart_line"></div>
             </section>
@@ -555,12 +556,12 @@
                     </div>
                 </div>
                 <p class="mt-3">
-                    Once the mouse hovers over the chart, we can extract the coordinated of the pointer. However, we
+                    Once the mouse hovers over the chart, we can extract the coordinates of the pointer. However, we
                     want
                     to highlight the closest actual value in the data, not an interpolated value on the screen.
                     We'll also add a text with exact <code>x</code> and <code>y</code> values to make it easy for the
                     user
-                    to see those values, as opposed to having to estimate them from the ticks on the axis. Let's first
+                    to see those values, rather than having to estimate them from the axes ticks. Let's first
                     initialize the variables for those values
                 </p>
                 <div class="accordion">
@@ -599,9 +600,9 @@
 
                 <p class="mt-3">
                     The part of the code is a bit longer, but this is what it does:
-                    As the mouse hovers over the plot, we read off the <code>x</code> value the mouse in pointing at,
-                    but we need to find the closest value we have in the data in order to know what is the value
-                    of the <code>y</code> axis at that location. We will use <code>d3.bisector</code> to find the
+                    As the mouse hovers over the plot, we read off the <code>x</code> value the mouse is pointing at.
+                    Then, we need to find the closest value we have in the data to know what the value
+                    of the <code>y</code> axis at that location is. We will use <code>d3.bisector</code> to find the
                     closest
                     <code>x</code> value, then <code>invert</code> it to find the index in the data for that value.
                     Finally, we will access the <code>y</code> value at that index.
@@ -674,10 +675,10 @@
             <section id="sec-responsive" title="Responsiveness: Does it fit on the screen?">
                 <h4 class="mt-5">Responsiveness: Does it fit on the screen?</h4>
                 <p>
-                    I mentioned earlier that we will want the chart to be responsive to the size of the window that the
-                    website is being viewed on. This is where we configure that! The code below reads in the size of the
-                    <code>div</code> we allocated for the chart, and then renders teh chart with that size. The last row
-                    add an <em>Event Listener</em> that re-renders the chart any time the window size changes.
+                    I mentioned earlier that we want the chart to be responsive to the size of the window the
+                    website is viewed on. This is where we configure that! The code below reads in the size of the
+                    <code>div</code> we allocated for the chart and then renders the chart with that size. The last row
+                    adds an <em>Event Listener</em> that re-renders the chart any time the window size changes.
                 </p>
                 <div class="accordion">
                     <div class="accordion-item">
