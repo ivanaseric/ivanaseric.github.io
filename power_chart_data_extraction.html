@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<link rel="shortcut icon" type="image/png" href="favicon.ico"/>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fitness Data</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-ghcolors.min.css"
+          integrity="sha512-8IZwRS36BrHutOtXP+S9ZLe/5MubhjJ26t1Kf9RYRt2kQi7brb8mLAKuJDX3qPJZ2U4Wg1cLPigCQVAxscTjtA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body style="visibility: hidden;">
+<noscript>
+    <style>body {
+        visibility: visible;
+    }</style>
+</noscript>
+<div class="container container-shadow p-5 mt-3 mb-3">
+    <div class="row">
+        <h1 class="c-darkred-text">Ivana Seric</h1>
+        <h6>Sr. Product Scientist at <a href="https://teamworks.com/">Teamworks</a></h6>
+        <h6>See my
+            <a href="https://www.linkedin.com/in/ivana-seric-503b4731/" target="_blank">LinkedIn page</a>
+            for more up-to-date information.
+        </h6>
+    </div>
+
+    <div class="horizontal-line"></div>
+    <main>
+        <br>
+        <article>
+            <h3 class="mt-3 c-darkred-text">Extracting Data from Fitness Files Using Python</h3>
+            <p>
+                This is a supplement to my article about <a href="data_visualizations.html">data visualization of
+                cycling data</a>. I'll show you here how to extract data from a <code>.fit</code> file.
+            </p>
+
+            <!--            <section id="sec-data" title="The Data Extraction">-->
+            <!--                <h4 class="mt-5">The Data</h4>-->
+            <p>
+                To get started I downloaded one activity data from my fitness tracking account (Garmin in my case) in a
+                .fit format.
+                This is a binary format, and it takes a bit of processing to get the data in a usable form that most of
+                us are used to.
+            </p>
+            <p>
+                In order to extract the data I needed (time and power), we'll use
+                <a href="https://github.com/dtcooper/python-fitparse" target="_blank">python-fitparse</a> package.
+                Then, we'll use <code>pandas</code> for some light data transformations.
+            </p>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#code-python-import" aria-expanded="true"
+                                aria-controls="code-python-import">
+                            Python Script
+                        </button>
+                    </h2>
+                    <div id="code-python-import" class="accordion-collapse collapse show">
+                        <div class="accordion-body">
+<pre><code class="language-python">import pandas as pd
+import fitparse</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="mt-3">
+                Now, we'll read the <code>.fit</code> file with <code>fitparse</code> using the
+                <code>FitFile()</code>
+                function and passing in the file path and name of our file. Since I saved the <code>.fit</code> in
+                the same directory as my Python code is in, I only need the file name for the path. If you saved the
+                file in a different location on your computer, make sure to include the full path.
+            </p>
+            <p>
+                There's a bit of "manual" work required to extract the time series data from the activity. The
+                <code>.fit</code> file contains <em>messages</em>: one for each data entry received from the sensor,
+                in this case a power meter on my bike. There are many different fields, i.e. message <em>names</em>
+                saved in the file.
+                Here, we will only extract the <code>timestamp</code> and <code>power</code>, but I encourage you
+                to explore other data that's recorded in your workout activities.
+            </p>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#code-python-parse-data" aria-expanded="true"
+                                aria-controls="code-python-parse-data">
+                            Python Script
+                        </button>
+                    </h2>
+                    <div id="code-python-parse-data" class="accordion-collapse collapse show">
+                        <div class="accordion-body">
+<pre><code class="language-python">fitfile = fitparse.FitFile("activity.fit")
+data_parse = []
+
+for record in fitfile.get_messages('record'):
+data_row = {}
+for data in record:
+if data.name in ["timestamp", "power"]:
+    data_row[data.name] = data.value
+data_parse.append(data_row)
+
+raw_df = pd.DataFrame(data_parse)
+</code></pre>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="mt-3">
+                Now that we have the data extracted, we'll do a bit of transformations. First, for my purpose, I don't
+                care about the exact time and date of each data entry, I only care about how much time elapsed from the
+                start of the workout.
+                We will create <code>elapsed_time</code> column in our data by subtracting the start time from all
+                <code>timestamps</code>. Then we'll convert it to seconds.
+                We will also need to transform the power data into a 30-second moving average.
+            </p>
+            <div class="accordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#code-python-transform" aria-expanded="true"
+                                aria-controls="code-python-transform">
+                            Python Script
+                        </button>
+                    </h2>
+                    <div id="code-python-transform" class="accordion-collapse collapse show">
+                        <div class="accordion-body">
+<pre><code class="language-python">raw_df["elapsed_time"] = (raw_df.timestamp - raw_df.timestamp.iloc[0]).apply(lambda x: x.seconds)
+raw_df["smooth_power"] = raw_df["power"].fillna(0).rolling(30, center=True, min_periods=1).mean()
+raw_df.drop("timestamp", axis=1, inplace=True)
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="mt-3">
+                That's how you extract and preprocess data from a <code>.fit</code> file!
+            </p>
+            <p>
+                Happy data analyzing!
+            </p>
+            <!--            </section>-->
+            <!--            <section id="sec-import-data" title="Importing the data in JavaScript">-->
+            <!--                <h4 class="mt-5">Importing the data in JavaScript</h4>-->
+            <!--                <p>-->
+            <!--                    Well, it's almost time for the fun part. We need to be able to read the data from the-->
+            <!--                    <code>.csv</code>-->
+            <!--                    file in this website using JavaScript. Since this is a static webpage here (no web server to <em>fetch</em>-->
+            <!--                    the data from the backend) and I don't care about this data being public and easy to <em>scrape</em>-->
+            <!--                    I'll just copy the <em>csv</em> values into a JS function as a <code>string</code>.-->
+            <!--                    Then I'll use <code>csvParse()</code> function from D3.js to turn it into a JS object. I-->
+            <!--                    could have exported it as a <code>.json</code> directly, but this way we get to learn about this D3-->
+            <!--                    function for parsing <em>csv</em>s.-->
+            <!--                </p>-->
+            <!--                <div class="accordion">-->
+            <!--                    <div class="accordion-item">-->
+            <!--                        <h2 class="accordion-header">-->
+            <!--                            <button class="accordion-button" type="button" data-bs-toggle="collapse"-->
+            <!--                                    data-bs-target="#code-js-csv" aria-expanded="true"-->
+            <!--                                    aria-controls="code-js-csv">-->
+            <!--                                <code>csv_data.js</code>-->
+            <!--                            </button>-->
+            <!--                        </h2>-->
+            <!--                        <div id="code-js-csv" class="accordion-collapse collapse show">-->
+            <!--                            <div class="accordion-body">-->
+            <!--<pre><code class="language-javascript">export function get_data () {-->
+            <!--const csv_string = (-->
+            <!--`elapsed_time,power,smooth_power-->
+            <!--0,0.0,406.7142857142857-->
+            <!--1,0.0,395.53333333333336-->
+            <!--...-->
+            <!--1612,0.0,115.94117647058823-->
+            <!--1613,0.0,96.125`-->
+            <!--);-->
+            <!--return d3.csvParse(csv_string, d3.autoType);-->
+            <!--}</code></pre>-->
+            <!--                            </div>-->
+            <!--                        </div>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--                <p class="mt-3">-->
+            <!--                    Note that the <code>...</code> is the middle of the data above is just to shorten the function here.-->
+            <!--                </p>-->
+            <!--                <p>-->
+            <!--                    Now, we'll switch to a new JS file, I called it <code>power_chart.js</code> where we'll-->
+            <!--                    create the power chart.-->
+            <!--                </p>-->
+            <!--            </section>-->
+        </article>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/prism.min.js"
+        integrity="sha512-HiD3V4nv8fcjtouznjT9TqDNDm1EXngV331YGbfVGeKUoH+OLkRTCMzA34ecjlgSQZpdHZupdSrqHY+Hz3l6uQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/components/prism-python.min.js"
+        integrity="sha512-AKaNmg8COK0zEbjTdMHJAPJ0z6VeNqvRvH4/d5M4sHJbQQUToMBtodq4HaV4fa+WV2UTfoperElm66c9/8cKmQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    // Helper function
+    let domReady = (cb) => {
+        document.readyState === 'interactive' || document.readyState === 'complete'
+            ? cb()
+            : document.addEventListener('DOMContentLoaded', cb);
+    };
+
+    domReady(() => {
+        // Display body when DOM is loaded
+        document.body.style.visibility = 'visible';
+    });
+</script>
+</body>
+</html>
